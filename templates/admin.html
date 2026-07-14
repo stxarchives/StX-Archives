@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | StX Archive{% endblock %}
+
+{% block content %}
+<div class="mb-12 flex justify-between items-end">
+    <div>
+        <div class="inline-block px-4 py-1.5 mb-6 rounded-full border border-airred/30 bg-airred/5 text-airred text-xs font-bold tracking-widest uppercase shadow-sm">
+            Ultimate Control Panel
+        </div>
+        <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-2">Admin Dashboard</h1>
+        <p class="text-gray-600 dark:text-gray-400 font-medium">Manage portal content, review submissions, and oversee evidence.</p>
+    </div>
+</div>
+
+<!-- Analytics Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="bg-gradient-to-br from-gray-900 to-black p-6 rounded-2xl shadow-lg border border-gray-800 text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Total Experiences</h3>
+        <span class="text-5xl font-black">{{ analytics.total }}</span>
+    </div>
+    <div class="bg-gradient-to-br from-green-900 to-green-950 p-6 rounded-2xl shadow-lg border border-green-800 text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-green-400 mb-2">Verified Posts</h3>
+        <span class="text-5xl font-black">{{ analytics.verified }}</span>
+    </div>
+    <div class="bg-gradient-to-br from-red-900 to-red-950 p-6 rounded-2xl shadow-lg border border-red-800 text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-red-400 mb-2">Pending Verification</h3>
+        <span class="text-5xl font-black">{{ analytics.pending }}</span>
+    </div>
+</div>
+
+<!-- Forms & Tools Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+    
+
+        
+    <!-- Override -->
+    <div class="space-y-8">
+    
+    
+    <!-- Override -->
+    <div class="space-y-8">
+        <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all group">
+            <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Force Post Experience</h3>
+            <form action="{{ url_for('admin_add_experience') }}" method="POST" class="space-y-4">
+                <input type="text" name="title" placeholder="Title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                <textarea name="details" placeholder="Detailed Account" required rows="2" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+                <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-airred hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Force Post</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security & System -->
+    <div class="space-y-8">
+        <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
+            <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Security</h3>
+            <form action="{{ url_for('change_password') }}" method="POST" class="space-y-4">
+                <input type="password" name="current_password" placeholder="Current Password" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                <input type="password" name="new_password" placeholder="New Password" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider hover:bg-black">Change Password</button>
+            </form>
+        </div>
+        
+        <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 border-t-4 border-t-red-600 transition-all text-center">
+            <h3 class="text-xl font-black text-red-600 mb-2 tracking-tight flex items-center justify-center">
+                <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                Kill Switch
+            </h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-6">Maintenance Mode</p>
+            <form action="{{ url_for('toggle_maintenance') }}" method="POST" onsubmit="return confirm('Are you sure you want to toggle maintenance mode? This will affect all public traffic.');">
+                {% if analytics.maintenance %}
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-xl transition-all shadow-lg hover:shadow-green-500/30 uppercase tracking-widest animate-pulse">
+                    Turn Site Online
+                </button>
+                <p class="mt-4 text-xs font-bold text-red-500">Site is currently OFFLINE</p>
+                {% else %}
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-xl transition-all shadow-lg hover:shadow-red-600/30 uppercase tracking-widest">
+                    Take Site Offline
+                </button>
+                <p class="mt-4 text-xs font-bold text-green-500">Site is currently ONLINE</p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Submission Queue with Live Search & Bulk Actions -->
+<div class="max-w-6xl mx-auto px-6 mb-20">
+    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        
+        <form action="{{ url_for('admin_bulk_action') }}" method="POST" id="bulkForm">
+            <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 class="text-2xl font-black text-airblack dark:text-white">Submission Queue</h2>
+                
+                <div class="flex items-center space-x-4 w-full sm:w-auto">
+                    <!-- Live Search -->
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search titles or details..." class="w-full sm:w-64 bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 text-sm rounded-lg p-2 focus:ring-airred focus:border-airred">
+                    
+                    <!-- Bulk Actions -->
+                    <div class="flex space-x-2">
+                        <button type="submit" name="action" value="verify" class="text-xs font-bold uppercase tracking-widest px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors whitespace-nowrap">Bulk Verify</button>
+                        <button type="submit" name="action" value="delete" class="text-xs font-bold uppercase tracking-widest px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors whitespace-nowrap" onsubmit="return confirm('Delete selected?');">Bulk Delete</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left" id="submissionsTable">
+                    <thead class="bg-gray-50 dark:bg-[#111] text-xs uppercase tracking-widest text-gray-500 font-bold border-b border-gray-100 dark:border-gray-800">
+                        <tr>
+                            <th class="px-6 py-4 w-10">
+                                <input type="checkbox" id="selectAll" onclick="toggleAllCheckboxes()" class="w-4 h-4 bg-gray-100 border-gray-300 rounded text-airred focus:ring-airred">
+                            </th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Title & Details</th>
+                            <th class="px-6 py-4">Identity</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                        {% for exp in experiences %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors group row-item">
+                            <td class="px-6 py-6 align-top">
+                                <input type="checkbox" name="selected_ids" value="{{ exp.id }}" class="row-checkbox w-4 h-4 bg-gray-100 border-gray-300 rounded text-airred focus:ring-airred">
+                            </td>
+                            <td class="px-6 py-6 align-top">
+                                {% if exp.is_verified %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-green-900/30 text-green-500 border border-green-800">Verified</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-gray-800 text-gray-400 border border-gray-700">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-6 align-top">
+                                <h4 class="font-bold text-airblack dark:text-white mb-1 row-title">{{ exp.title }}</h4>
+                                <p class="text-sm text-gray-500 font-medium line-clamp-2 mb-2 row-details">{{ exp.details }}</p>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-gray-400 border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5">{{ exp.category }}</span>
+                            </td>
+                            <td class="px-6 py-6 align-top text-sm font-medium">
+                                <div class="text-airblack dark:text-white">{{ exp.name }}</div>
+                                <div class="text-gray-500 text-xs">{{ exp.email or 'No email' }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% if not experiences %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest">
+                                No submissions in the queue.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+    function toggleAllCheckboxes() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => {
+            // Only check if row is visible (not filtered out)
+            if (cb.closest('tr').style.display !== 'none') {
+                cb.checked = selectAll.checked;
+            }
+        });
+    }
+
+    function filterTable() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll('.row-item');
+
+        rows.forEach(row => {
+            const title = row.querySelector('.row-title').innerText.toLowerCase();
+            const details = row.querySelector('.row-details').innerText.toLowerCase();
+            if (title.includes(filter) || details.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+                row.querySelector('.row-checkbox').checked = false; // uncheck hidden rows
+            }
+        });
+        document.getElementById('selectAll').checked = false;
+    }
+</script>
+
+{% endblock %}

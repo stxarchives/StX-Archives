@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Evidence Archive | StX Archive{% endblock %}
+{% block content %}
+<div class="mb-12 flex flex-col md:flex-row md:items-end justify-between px-6 lg:px-8">
+    <div class="mb-6 md:mb-0">
+        <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-3">Evidence Archive</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400 font-medium">Search and browse all documented materials.</p>
+    </div>
+    
+    <div class="w-full md:w-96">
+        <div class="relative group">
+            <input type="text" class="w-full bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-xl pl-12 pr-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-airred focus:border-airred transition-all font-medium placeholder-gray-400 dark:placeholder-gray-600 shadow-sm group-hover:border-airred/50" placeholder="Search archive...">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="px-6 lg:px-8 mb-20">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for item in evidence %}
+        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-xl transition-all hover:-translate-y-1 hover:border-airred/30 group">
+            <div class="h-48 bg-gray-100 dark:bg-[#111] flex items-center justify-center relative border-b border-gray-100 dark:border-gray-800 bg-cover bg-center" {% if item.image_url %}style="background-image: url('{{ item.image_url }}');"{% endif %}>
+                {% if not item.image_url %}
+                <svg class="h-12 w-12 text-gray-300 dark:text-gray-700 transition-transform duration-500 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                {% endif %}
+                <div class="absolute inset-0 bg-airblack/0 group-hover:bg-airblack/40 dark:group-hover:bg-airblack/60 transition-all flex items-center justify-center backdrop-blur-[2px] opacity-0 group-hover:opacity-100">
+                    <a href="{{ url_for('document') }}" class="bg-airred text-white px-6 py-2 rounded-lg font-bold uppercase tracking-wider text-sm shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-airdarkred">View Details</a>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{{ item.date }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider border border-airred/30 bg-airred/5 text-airred">{{ item.category }}</span>
+                </div>
+                <h3 class="text-xl font-black text-airblack dark:text-white mb-2 truncate group-hover:text-airred transition-colors">{{ item.title }}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 font-medium">{{ item.description }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% if not evidence %}
+        <div class="col-span-full text-center text-gray-500 font-bold uppercase tracking-widest py-12">No evidence uploaded yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Timeline | StX Archive{% endblock %}
+
+{% block content %}
+<div class="mb-16 text-center">
+    <div class="inline-block px-4 py-1.5 mb-6 rounded-full border border-airred/30 bg-airred/5 text-airred text-xs font-bold tracking-widest uppercase shadow-sm">
+        Chronology
+    </div>
+    <h1 class="text-5xl font-black text-airblack dark:text-white tracking-tighter mb-6">Event Timeline</h1>
+    <p class="max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-400 font-medium leading-relaxed">A chronological record of documented events, policy changes, and incidents.</p>
+</div>
+
+<div class="relative max-w-4xl mx-auto">
+    <!-- Vertical Line -->
+    <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-airred via-airred/50 to-transparent rounded-full"></div>
+    
+    <!-- Timeline Event -->
+    <div class="relative mb-16 flex justify-between items-center w-full right-timeline group">
+        <div class="order-1 w-5/12"></div>
+        <div class="z-20 flex items-center order-1 bg-white dark:bg-airblack border-4 border-airred shadow-xl w-8 h-8 rounded-full transform transition-transform group-hover:scale-125">
+        </div>
+        <div class="order-1 bg-white dark:bg-[#151515] rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 w-5/12 px-8 py-6 transition-all hover:-translate-y-1 hover:border-airred/50">
+            <span class="inline-block mb-3 text-xs font-black uppercase tracking-widest text-airred">July 13, 2026</span>
+            <h3 class="mb-3 font-black text-airblack dark:text-white text-2xl tracking-tight group-hover:text-airred transition-colors">Portal Launched</h3>
+            <p class="text-base leading-relaxed text-gray-600 dark:text-gray-400 font-medium">The StX Archive portal goes live to document evidence securely.</p>
+            <div class="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-widest bg-gray-100 text-gray-800 dark:bg-[#222] dark:text-gray-300 px-3 py-1 rounded-md border border-gray-200 dark:border-gray-700">Notice</span>
+                <span class="text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-500 flex items-center">
+                    <svg class="h-4 w-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    Verified
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

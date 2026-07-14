@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}StX Archive | Documenting Truth Through Evidence{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative pt-32 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <!-- Subtle radial gradient matching the screenshot -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-airdarkred/20 via-transparent to-transparent opacity-50 dark:opacity-100 pointer-events-none"></div>
+    
+    <div class="relative z-10 w-full max-w-4xl">
+        <div class="inline-block px-5 py-1 mb-12 rounded-full border border-airred/30 bg-transparent text-airred text-[11px] font-black tracking-[0.2em] uppercase">
+            A PREMIUM CUSTOMER EXPERIENCE
+        </div>
+        
+        <h1 class="text-[3.5rem] sm:text-6xl md:text-[5rem] font-black text-airblack dark:text-white tracking-tight mb-8 leading-[1.05]">
+            The truth has been<br/>
+            <span class="text-gray-500 line-through decoration-gray-500 decoration-4">hidden</span> <span class="text-airred">exposed.</span>
+        </h1>
+        
+        <p class="mx-auto max-w-2xl text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-20 font-medium leading-relaxed">
+            Welcome to StX Archive — a love letter to the school's administration, where the only thing faster than their "transparency" is the speed at which they close incident reports without reading them.
+        </p>
+        
+        <!-- Stats Section (Text-based, no cards) -->
+        <div class="flex flex-wrap justify-center gap-12 sm:gap-20">
+            <div class="text-center">
+                <div class="text-5xl md:text-6xl font-black text-airred mb-2">0</div>
+                <div class="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">Problems Actually Fixed</div>
+            </div>
+            <div class="text-center">
+                <div class="text-5xl md:text-6xl font-black text-airred mb-2">21+</div>
+                <div class="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">Days of "Patience"</div>
+            </div>
+            <div class="text-center">
+                <div class="text-5xl md:text-6xl font-black text-airred mb-2">547+</div>
+                <div class="text-[10px] sm:text-xs text-gray-500 font-bold uppercase tracking-widest">Stories Just Like This</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Updates & Featured Categories -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Featured Evidence -->
+    <div class="lg:col-span-2 space-y-6">
+        <div class="flex items-center mb-8">
+            <div class="h-8 w-1.5 bg-airred rounded-full mr-4"></div>
+            <h2 class="text-3xl font-extrabold text-airblack dark:text-white tracking-tight">Recent Additions</h2>
+        </div>
+        
+        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all hover:border-gray-300 dark:hover:border-gray-700">
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-airlight dark:bg-[#222] text-airred border border-gray-200 dark:border-gray-700">
+                        Notice
+                    </span>
+                    <span class="text-sm font-semibold text-gray-400 dark:text-gray-500">July 13, 2026</span>
+                </div>
+                <a href="{{ url_for('document') }}" class="block mt-2 group">
+                    <h3 class="text-2xl font-black text-airblack dark:text-white group-hover:text-airred transition-colors tracking-tight">Welcome to the Portal</h3>
+                    <p class="mt-4 text-base text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                        This platform has been launched to provide a centralized, secure location for documenting school policies and events. More evidence will be uploaded shortly.
+                    </p>
+                </a>
+                <div class="mt-8 flex items-center pt-6 border-t border-gray-100 dark:border-gray-800">
+                    <span class="inline-flex items-center text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-500">
+                        <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        Verified Platform Message
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categories -->
+    <div class="space-y-6">
+        <div class="flex items-center mb-8">
+            <div class="h-8 w-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mr-4"></div>
+            <h2 class="text-3xl font-extrabold text-airblack dark:text-white tracking-tight">Categories</h2>
+        </div>
+        
+        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+            <ul class="divide-y divide-gray-100 dark:divide-gray-800">
+                {% for cat, count in category_counts.items() %}
+                <li>
+                    <a href="{{ url_for('experience', category=cat) }}" class="block p-5 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] transition-colors text-gray-700 dark:text-gray-300 font-semibold tracking-wide hover:text-airred dark:hover:text-airred flex justify-between items-center group">
+                        {{ cat }} 
+                        <span class="text-gray-400 dark:text-gray-600 font-black group-hover:text-airred/50">{{ count }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

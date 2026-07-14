@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Document Details | StX Archive{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto pt-20 pb-16 px-6">
+    <div class="mb-8">
+        <a href="{{ url_for('archive') }}" class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-airred transition-colors uppercase tracking-widest">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Archive
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
+        <div class="p-8 sm:p-12 border-b border-gray-100 dark:border-gray-800">
+            <div class="flex justify-between items-start mb-6">
+                <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-airlight dark:bg-[#222] text-airred border border-gray-200 dark:border-gray-700">
+                    Notice
+                </span>
+                <span class="text-sm font-semibold text-gray-400 dark:text-gray-500">July 13, 2026</span>
+            </div>
+            
+            <h1 class="text-3xl sm:text-4xl font-black text-airblack dark:text-white tracking-tight mb-4">
+                Portal Guidelines
+            </h1>
+            
+            <div class="flex items-center text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-500">
+                <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                Verified Document
+            </div>
+        </div>
+        
+        <div class="p-8 sm:p-12 prose dark:prose-invert max-w-none">
+            <p class="text-lg text-gray-700 dark:text-gray-300 font-medium leading-relaxed mb-6">
+                Initial guidelines for submitting and reviewing evidence on the transparency portal. These rules are designed to ensure that all information remains factual, objective, and neutral.
+            </p>
+            <h3 class="text-xl font-bold text-airblack dark:text-white mb-3">1. Factual Reporting</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                All submissions must be based on documented facts. Do not present disputed claims as established facts. Provide evidence such as photographs, official emails, or notices whenever possible.
+            </p>
+            <h3 class="text-xl font-bold text-airblack dark:text-white mb-3">2. Neutrality</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                The language used in submissions should be neutral and objective. Refrain from using inflammatory language or personal attacks.
+            </p>
+            <h3 class="text-xl font-bold text-airblack dark:text-white mb-3">3. Verification</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                Our moderation team will review all evidence before publication. Unverified accounts will be clearly marked as "Personal Experiences".
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
