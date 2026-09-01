@@ -237,6 +237,7 @@
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4">Title & Details</th>
                             <th class="px-6 py-4">Identity</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -261,12 +262,15 @@
                                 <div class="text-airblack dark:text-white">{{ exp.name }}</div>
                                 <div class="text-gray-500 text-xs">{{ exp.email or 'No email' }}</div>
                             </td>
+                            <td class="px-6 py-6 align-top text-right">
+                                <button type="button" onclick="openEditModal({{ exp.id }}, '{{ exp.title | replace('\'', '\\\'') | replace('"', '\\"') }}', '{{ exp.details | replace('\'', '\\\'') | replace('"', '\\"') | replace('\n', '\\n') }}', '{{ exp.category }}', {{ exp.helpful_votes.get('yes', 0) if exp.helpful_votes else 0 }}, {{ exp.helpful_votes.get('no', 0) if exp.helpful_votes else 0 }}, {{ exp.reactions.get('👍', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('❤️', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😂', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😮', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😢', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('🙏', 0) if exp.reactions else 0 }})" class="text-xs font-bold uppercase tracking-widest px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 rounded-lg transition-colors border border-blue-500/20">Edit</button>
+                            </td>
                         </tr>
                         {% endfor %}
                         
                         {% if not experiences %}
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest">
                                 No submissions in the queue.
                             </td>
                         </tr>
@@ -309,6 +313,78 @@
         });
         document.getElementById('selectAll').checked = false;
     }
+
+    // Edit Modal Logic
+    function openEditModal(id, title, details, category, helpfulYes, helpfulNo, rLike, rLove, rHaha, rWow, rSad, rPray) {
+        document.getElementById('edit-exp-form').action = `/admin/edit-experience/${id}`;
+        document.getElementById('edit-title').value = title;
+        document.getElementById('edit-details').value = details;
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-fake-helpful').value = helpfulYes;
+        document.getElementById('edit-fake-unhelpful').value = helpfulNo;
+        document.getElementById('react-like').value = rLike;
+        document.getElementById('react-love').value = rLove;
+        document.getElementById('react-haha').value = rHaha;
+        document.getElementById('react-wow').value = rWow;
+        document.getElementById('react-sad').value = rSad;
+        document.getElementById('react-pray').value = rPray;
+        document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
 </script>
+
+<!-- Edit Experience Modal -->
+<div id="edit-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#151515] rounded-2xl max-w-2xl w-full border border-gray-200 dark:border-gray-800 shadow-2xl relative">
+        <button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="p-8">
+            <h3 class="text-2xl font-black text-airblack dark:text-white mb-6 tracking-tight">Edit Experience & Manipulate Reactions</h3>
+            <form id="edit-exp-form" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Title</label>
+                    <input type="text" id="edit-title" name="title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Details</label>
+                    <textarea id="edit-details" name="details" required rows="4" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Category</label>
+                    <input type="text" id="edit-category" name="category" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-green-500 mb-2">Helpful (Yes) Votes</label>
+                        <input type="number" id="edit-fake-helpful" name="fake_helpful" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-red-500 mb-2">Unhelpful (No) Votes</label>
+                        <input type="number" id="edit-fake-unhelpful" name="fake_unhelpful" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 pt-2">
+                    <div><label class="block text-xs font-bold mb-1">👍 Likes</label><input type="number" id="react-like" name="react_like" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">❤️ Love</label><input type="number" id="react-love" name="react_love" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😂 Haha</label><input type="number" id="react-haha" name="react_haha" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😮 Wow</label><input type="number" id="react-wow" name="react_wow" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😢 Sad</label><input type="number" id="react-sad" name="react_sad" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">🙏 Pray</label><input type="number" id="react-pray" name="react_pray" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                </div>
+
+                <div class="pt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider uppercase bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider uppercase bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-600/20">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

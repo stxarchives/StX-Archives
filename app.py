@@ -918,6 +918,55 @@ def save_page():
         
     return redirect(url_for('admin'))
 
+@app.route('/admin/edit-experience/<int:exp_id>', methods=['POST'])
+@admin_required
+def admin_edit_experience(exp_id):
+    if not supabase:
+        flash('Supabase not connected.', 'error')
+        return redirect(url_for('admin'))
+        
+    title = request.form.get('title')
+    details = request.form.get('details')
+    category = request.form.get('category')
+    
+    # Optional reactions manipulation
+    fake_helpful = request.form.get('fake_helpful', type=int)
+    fake_unhelpful = request.form.get('fake_unhelpful', type=int)
+    
+    r_like = request.form.get('react_like', type=int)
+    r_love = request.form.get('react_love', type=int)
+    r_haha = request.form.get('react_haha', type=int)
+    r_wow = request.form.get('react_wow', type=int)
+    r_sad = request.form.get('react_sad', type=int)
+    r_pray = request.form.get('react_pray', type=int)
+    
+    update_data = {
+        'title': title,
+        'details': details,
+        'category': category
+    }
+    
+    try:
+        if fake_helpful is not None and fake_unhelpful is not None:
+            update_data['helpful_votes'] = {'yes': fake_helpful, 'no': fake_unhelpful}
+            
+        if all(x is not None for x in [r_like, r_love, r_haha, r_wow, r_sad, r_pray]):
+            update_data['reactions'] = {
+                '👍': r_like,
+                '❤️': r_love,
+                '😂': r_haha,
+                '😮': r_wow,
+                '😢': r_sad,
+                '🙏': r_pray
+            }
+            
+        supabase.table('experiences').update(update_data).eq('id', exp_id).execute()
+        flash('Experience updated successfully.', 'success')
+    except Exception as e:
+        flash(f'Error updating experience: {e}', 'error')
+        
+    return redirect(url_for('admin'))
+
 @app.route('/admin/verify/<int:exp_id>', methods=['POST'])
 @admin_required
 def verify_experience(exp_id):
