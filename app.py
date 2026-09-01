@@ -150,9 +150,30 @@ def teachers():
             file = request.files['image']
             if file and file.filename != '':
                 filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
-                file.save(filepath)
-                image_url = '/' + filepath
+                
+                if supabase:
+                    try:
+                        file_bytes = file.read()
+                        # Upload to Supabase Storage
+                        res = supabase.storage.from_("uploads").upload(
+                            file=file_bytes,
+                            path=f"teachers/{filename}",
+                            file_options={"content-type": file.content_type}
+                        )
+                        # Get public URL
+                        public_url = supabase.storage.from_("uploads").get_public_url(f"teachers/{filename}")
+                        image_url = public_url
+                    except Exception as e:
+                        print(f"Error uploading to Supabase Storage: {e}")
+                        # Fallback to local save
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                        file.seek(0)
+                        file.save(filepath)
+                        image_url = '/' + filepath
+                else:
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                    file.save(filepath)
+                    image_url = '/' + filepath
 
         new_teacher = {
             "name": name,
