@@ -26,24 +26,41 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+import time
+
+maintenance_cache = {
+    'status': False,
+    'last_checked': 0
+}
+
 @app.before_request
 def check_maintenance():
-    is_maintenance = False
-    if supabase:
-        try:
-            res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
-            if res.data and res.data[0]['value'] == 'true':
-                is_maintenance = True
-        except:
-            pass
-    elif os.path.exists('.maintenance'):
-        is_maintenance = True
+    # Never block or query DB for static files
+    if request.path.startswith('/static'):
+        return
 
-    if is_maintenance:
-        # Allow access to static files and admin routes
-        if request.path.startswith('/static') or request.path.startswith('/admin'):
+    global maintenance_cache
+    current_time = time.time()
+    
+    # Check database only once every 60 seconds
+    if current_time - maintenance_cache['last_checked'] > 60:
+        is_maintenance = False
+        if supabase:
+            try:
+                res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
+                if res.data and res.data[0]['value'] == 'true':
+                    is_maintenance = True
+            except:
+                pass
+        elif os.path.exists('.maintenance'):
+            is_maintenance = True
+            
+        maintenance_cache['status'] = is_maintenance
+        maintenance_cache['last_checked'] = current_time
+
+    if maintenance_cache['status']:
+        if request.path.startswith('/admin'):
             return
-        # Display maintenance page for everything else
         return render_template('maintenance.html'), 503
 
 CATEGORIES = [
