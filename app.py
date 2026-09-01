@@ -1164,7 +1164,11 @@ def signup():
                 flash('Account created! Please check your email to verify your account before logging in.', 'success')
                 return redirect(url_for('login'))
             except Exception as e:
-                flash(f'Error signing up: {str(e)}', 'error')
+                error_msg = str(e)
+                if 'Error sending confirmation email' in error_msg or 'rate limit' in error_msg.lower():
+                    flash('Server email limits reached. Please email stx.archives@proton.me to create your account manually.', 'error')
+                else:
+                    flash(f'Error signing up: {error_msg}', 'error')
         else:
             # Fallback mock users
             if any(u['email'] == email for u in mock_users):
