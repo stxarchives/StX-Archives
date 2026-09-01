@@ -28,7 +28,18 @@ def admin_required(f):
 
 @app.before_request
 def check_maintenance():
-    if os.path.exists('.maintenance'):
+    is_maintenance = False
+    if supabase:
+        try:
+            res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
+            if res.data and res.data[0]['value'] == 'true':
+                is_maintenance = True
+        except:
+            pass
+    elif os.path.exists('.maintenance'):
+        is_maintenance = True
+
+    if is_maintenance:
         # Allow access to static files and admin routes
         if request.path.startswith('/static') or request.path.startswith('/admin'):
             return
@@ -629,11 +640,22 @@ def admin():
     evidence_list = []
     incidents_list = []
     
+    is_maintenance = False
+    if supabase:
+        try:
+            res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
+            if res.data and res.data[0]['value'] == 'true':
+                is_maintenance = True
+        except:
+            pass
+    elif os.path.exists('.maintenance'):
+        is_maintenance = True
+        
     analytics = {
         "total": 0,
         "verified": 0,
         "pending": 0,
-        "maintenance": os.path.exists('.maintenance')
+        "maintenance": is_maintenance
     }
     
     if supabase:
@@ -724,6 +746,10 @@ def admin_bulk_action():
                 for exp_id in selected_ids:
                     supabase.table('experiences').update({'is_verified': True}).eq('id', int(exp_id)).execute()
                 flash(f'Successfully verified {len(selected_ids)} experiences.', 'success')
+            elif action == 'unverify':
+                for exp_id in selected_ids:
+                    supabase.table('experiences').update({'is_verified': False}).eq('id', int(exp_id)).execute()
+                flash(f'Successfully un-verified {len(selected_ids)} experiences.', 'success')
             return redirect(url_for('admin'))
         except Exception as e:
             print(f'Bulk action error: {str(e)}')
@@ -935,6 +961,21 @@ def change_password():
 @app.route('/admin/toggle_maintenance', methods=['POST'])
 @admin_required
 def toggle_maintenance():
+    if supabase:
+        try:
+            res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
+            current = res.data[0]['value'] if res.data else 'false'
+            new_val = 'false' if current == 'true' else 'true'
+            supabase.table('site_settings').upsert({'key': 'maintenance_mode', 'value': new_val}).execute()
+            if new_val == 'true':
+                flash('Maintenance mode ENABLED. Public site is offline.', 'error')
+            else:
+                flash('Maintenance mode DISABLED. Site is live.', 'success')
+            return redirect(url_for('admin'))
+        except Exception as e:
+            flash(f'Error toggling maintenance mode: {str(e)}', 'error')
+            
+    # Fallback to local file
     if os.path.exists('.maintenance'):
         os.remove('.maintenance')
         flash('Maintenance mode DISABLED. Site is live.', 'success')
@@ -980,12 +1021,8 @@ def signup():
                     return redirect(url_for('signup'))
                 
                 # Supabase auth handles verification emails automatically if configured.
-                session['user_logged_in'] = True
-                session['user_email'] = email
-                session['user_username'] = username
-                session['email_verified'] = False # Requires them to click email link
-                flash('Account created! Please check your email to verify your account.', 'success')
-                return redirect(url_for('index'))
+                flash('Account created! Please check your email to verify your account before logging in.', 'success')
+                return redirect(url_for('login'))
             except Exception as e:
                 flash(f'Error signing up: {str(e)}', 'error')
         else:
@@ -996,12 +1033,8 @@ def signup():
                 flash('Username already taken.', 'error')
             else:
                 mock_users.append({'email': email, 'password': password, 'username': username, 'is_verified': False})
-                session['user_logged_in'] = True
-                session['user_email'] = email
-                session['user_username'] = username
-                session['email_verified'] = False
-                flash('Account created (local mode)! Please verify your email to post.', 'success')
-                return redirect(url_for('index'))
+                flash('Account created (local mode)! Please login.', 'success')
+                return redirect(url_for('login'))
 
     return render_template('signup.html')
 
