@@ -214,7 +214,7 @@ mock_experiences = [
 ]
 
 for exp in mock_experiences:
-    exp['reactions'] = {'👍': 0, '❤️': 0, '😂': 0, '😮': 0, '😢': 0, '🙏': 0}
+    exp['reactions'] = {'🔥': 0, '👏': 0, '😢': 0, '😡': 0}
     exp['helpful_votes'] = {'yes': 0, 'no': 0}
 
 @app.route('/api/experience/<int:exp_id>/react', methods=['POST'])
@@ -223,34 +223,51 @@ def react_experience(exp_id):
     data = request.json
     emoji = data.get('emoji')
     
-    exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+    exp = None
+    if supabase:
+        try:
+            response = supabase.table('experiences').select('*').eq('id', exp_id).execute()
+            if response.data:
+                exp = response.data[0]
+        except Exception as e:
+            print(f"Supabase error fetching exp for react: {e}")
+            
+    if not exp:
+        exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+        
     if not exp or 'reactions' not in exp or emoji not in exp['reactions']:
         return jsonify({'success': False, 'error': 'Experience or valid emoji not found'}), 404
         
     current_reaction = session.get(session_key)
-    
-    # Handle legacy boolean session values from previous code version
     if current_reaction is True:
         session.pop(session_key, None)
         current_reaction = None
         
     if current_reaction:
         if current_reaction == emoji:
-            # Revert the reaction
             exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
             session.pop(session_key, None)
-            return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'reverted', 'selected': None})
+            action = 'reverted'
+            selected = None
         else:
-            # Change the reaction
             exp['reactions'][current_reaction] = max(0, exp['reactions'][current_reaction] - 1)
-            exp['reactions'][emoji] += 1
+            exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
             session[session_key] = emoji
-            return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'changed', 'selected': emoji})
+            action = 'changed'
+            selected = emoji
+    else:
+        exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
+        session[session_key] = emoji
+        action = 'added'
+        selected = emoji
+        
+    if supabase:
+        try:
+            supabase.table('experiences').update({'reactions': exp['reactions']}).eq('id', exp_id).execute()
+        except Exception as e:
+            print(f"Supabase error updating react: {e}")
             
-    # New reaction
-    exp['reactions'][emoji] += 1
-    session[session_key] = emoji
-    return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'added', 'selected': emoji})
+    return jsonify({'success': True, 'reactions': exp['reactions'], 'action': action, 'selected': selected})
 
 @app.route('/api/experience/<int:exp_id>/vote', methods=['POST'])
 def vote_experience(exp_id):
@@ -258,28 +275,47 @@ def vote_experience(exp_id):
     data = request.json
     vote = data.get('vote')
     
-    exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+    exp = None
+    if supabase:
+        try:
+            response = supabase.table('experiences').select('*').eq('id', exp_id).execute()
+            if response.data:
+                exp = response.data[0]
+        except Exception as e:
+            print(f"Supabase error fetching exp for vote: {e}")
+            
+    if not exp:
+        exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+        
     if not exp or 'helpful_votes' not in exp or vote not in exp['helpful_votes']:
         return jsonify({'success': False, 'error': 'Experience or vote type not found'}), 404
         
     current_vote = session.get(session_key)
     if current_vote:
         if current_vote == vote:
-            # Revert the vote
             exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
             session.pop(session_key, None)
-            return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'reverted', 'selected': None})
+            action = 'reverted'
+            selected = None
         else:
-            # Change the vote
             exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'][current_vote] - 1)
-            exp['helpful_votes'][vote] += 1
+            exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
             session[session_key] = vote
-            return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'changed', 'selected': vote})
+            action = 'changed'
+            selected = vote
+    else:
+        exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
+        session[session_key] = vote
+        action = 'added'
+        selected = vote
+        
+    if supabase:
+        try:
+            supabase.table('experiences').update({'helpful_votes': exp['helpful_votes']}).eq('id', exp_id).execute()
+        except Exception as e:
+            print(f"Supabase error updating vote: {e}")
             
-    # New vote
-    exp['helpful_votes'][vote] += 1
-    session[session_key] = vote
-    return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'added', 'selected': vote})
+    return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
 
 mock_users = []
 mock_evidence = []
