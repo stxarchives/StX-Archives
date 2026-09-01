@@ -10,7 +10,7 @@
     
     <div class="relative z-10 w-full max-w-4xl">
         <div class="inline-block px-5 py-1 mb-12 rounded-full border border-airred/30 bg-transparent text-airred text-[11px] font-black tracking-[0.2em] uppercase">
-            A PREMIUM CUSTOMER EXPERIENCE
+            A PREMIUM INSTITUTE EXPERIENCE
         </div>
         
         <h1 class="text-[3.5rem] sm:text-6xl md:text-[5rem] font-black text-airblack dark:text-white tracking-tight mb-8 leading-[1.05]">
@@ -19,7 +19,7 @@
         </h1>
         
         <p class="mx-auto max-w-2xl text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-20 font-medium leading-relaxed">
-            Welcome to StX Archive — a love letter to the school's administration, where the only thing faster than their "transparency" is the speed at which they close incident reports without reading them.
+            Welcome to StX Archive — a love letter to the school's administration, where the only thing faster than their "transparency" is the speed at which they demand more money for everything.
         </p>
         
         <!-- Stats Section (Text-based, no cards) -->
@@ -49,28 +49,140 @@
             <h2 class="text-3xl font-extrabold text-airblack dark:text-white tracking-tight">Recent Additions</h2>
         </div>
         
-        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all hover:border-gray-300 dark:hover:border-gray-700">
-            <div class="p-8">
-                <div class="flex justify-between items-start mb-6">
-                    <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-airlight dark:bg-[#222] text-airred border border-gray-200 dark:border-gray-700">
-                        Notice
-                    </span>
-                    <span class="text-sm font-semibold text-gray-400 dark:text-gray-500">July 13, 2026</span>
-                </div>
-                <a href="{{ url_for('document') }}" class="block mt-2 group">
-                    <h3 class="text-2xl font-black text-airblack dark:text-white group-hover:text-airred transition-colors tracking-tight">Welcome to the Portal</h3>
-                    <p class="mt-4 text-base text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-                        This platform has been launched to provide a centralized, secure location for documenting school policies and events. More evidence will be uploaded shortly.
-                    </p>
-                </a>
-                <div class="mt-8 flex items-center pt-6 border-t border-gray-100 dark:border-gray-800">
-                    <span class="inline-flex items-center text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-500">
-                        <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        Verified Platform Message
-                    </span>
+        {% if recent_experiences %}
+            {% for exp in recent_experiences %}
+            <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all hover:border-gray-300 dark:hover:border-gray-700">
+                <div class="p-8">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-airlight dark:bg-[#222] text-airred border border-gray-200 dark:border-gray-700">
+                            {{ exp.category }}
+                        </span>
+                        <span class="text-sm font-semibold text-gray-400 dark:text-gray-500">{{ exp.date }}</span>
+                    </div>
+                    <a href="{{ url_for('experience') }}#exp-{{ exp.id }}" class="block mt-2 group">
+                        <h3 class="text-2xl font-black text-airblack dark:text-white group-hover:text-airred transition-colors tracking-tight">{{ exp.title }}</h3>
+                        <p class="mt-4 text-base text-gray-600 dark:text-gray-400 leading-relaxed font-medium line-clamp-3">
+                            {{ exp.details }}
+                        </p>
+                    </a>
+                    {% if exp.is_verified %}
+                    <div class="mt-8 flex items-center pt-6 border-t border-gray-100 dark:border-gray-800">
+                        <span class="inline-flex items-center text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-500">
+                            <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            Verified Experience
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div id="reactions-container-{{ exp.id }}" class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+                            {% set reacted = session.get('reacted_exp_' ~ exp.id) %}
+                            {% for emoji, count in exp.reactions.items() %}
+                            <button id="btn-react-{{ exp.id }}-{{ loop.index }}" onclick="reactToExperience({{ exp.id }}, '{{ emoji }}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap {% if reacted == emoji %}bg-gray-200 dark:bg-[#333] border-gray-400 dark:border-gray-500 opacity-100{% elif reacted and reacted != True %}bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 opacity-50 hover:opacity-100{% else %}bg-gray-50 dark:bg-[#1a1a1a] hover:bg-gray-100 dark:hover:bg-[#222] border-gray-200 dark:border-gray-700{% endif %}">
+                                <span class="text-base">{{ emoji }}</span>
+                                <span id="react-count-{{ exp.id }}-{{ emoji }}" class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ count }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="flex items-center gap-3 shrink-0">
+                            {% set voted = session.get('voted_exp_' ~ exp.id) %}
+                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Helpful?</span>
+                            
+                            <button id="btn-vote-yes-{{ exp.id }}" onclick="voteExperience({{ exp.id }}, 'yes')" class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border {% if voted == 'yes' %}bg-green-100 dark:bg-green-900/60 border-green-400 dark:border-green-600 text-green-800 dark:text-green-400 opacity-100{% elif voted == 'no' %}bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 text-gray-400 opacity-50 hover:opacity-100{% else %}bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-700 dark:text-green-500 border-green-200 dark:border-green-800/50{% endif %}">
+                                <span class="text-xs font-bold">Yes</span>
+                                <span id="vote-yes-{{ exp.id }}" class="text-xs ml-1">{{ exp.helpful_votes.yes }}</span>
+                            </button>
+                            
+                            <button id="btn-vote-no-{{ exp.id }}" onclick="voteExperience({{ exp.id }}, 'no')" class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border {% if voted == 'no' %}bg-red-100 dark:bg-red-900/60 border-red-400 dark:border-red-600 text-red-800 dark:text-red-400 opacity-100{% elif voted == 'yes' %}bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 text-gray-400 opacity-50 hover:opacity-100{% else %}bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-700 dark:text-red-500 border-red-200 dark:border-red-800/50{% endif %}">
+                                <span class="text-xs font-bold">No</span>
+                                <span id="vote-no-{{ exp.id }}" class="text-xs ml-1">{{ exp.helpful_votes.no }}</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+            {% endfor %}
+            
+            <script>                function reactToExperience(expId, emoji) {
+                    fetch(`/api/experience/${expId}/react`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ emoji: emoji })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const container = document.getElementById(`reactions-container-${expId}`);
+                            if (container) {
+                                const buttons = container.querySelectorAll('button');
+                                buttons.forEach(btn => {
+                                    const btnEmoji = btn.querySelector('.text-base').innerText;
+                                    const countSpan = btn.querySelector('.text-xs');
+                                    countSpan.innerText = data.reactions[btnEmoji];
+                                    
+                                    if (data.selected === btnEmoji) {
+                                        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap bg-gray-200 dark:bg-[#333] border-gray-400 dark:border-gray-500 opacity-100";
+                                    } else if (data.selected) {
+                                        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 opacity-50 hover:opacity-100";
+                                    } else {
+                                        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-[#1a1a1a] hover:bg-gray-100 dark:hover:bg-[#222] transition-colors border border-gray-200 dark:border-gray-700 whitespace-nowrap";
+                                    }
+                                });
+                            }
+                        } else {
+                            alert(data.error || "An error occurred.");
+                        }
+                    });
+                }
+
+                function voteExperience(expId, voteType) {
+                    fetch(`/api/experience/${expId}/vote`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ vote: voteType })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`vote-yes-${expId}`).innerText = data.helpful_votes.yes;
+                            document.getElementById(`vote-no-${expId}`).innerText = data.helpful_votes.no;
+                            
+                            const btnYes = document.getElementById(`btn-vote-yes-${expId}`);
+                            const btnNo = document.getElementById(`btn-vote-no-${expId}`);
+                            
+                            if (btnYes && btnNo) {
+                                if (data.selected === 'yes') {
+                                    btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-green-100 dark:bg-green-900/60 border-green-400 dark:border-green-600 text-green-800 dark:text-green-400 opacity-100";
+                                    btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 text-gray-400 opacity-50 hover:opacity-100";
+                                } else if (data.selected === 'no') {
+                                    btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-red-100 dark:bg-red-900/60 border-red-400 dark:border-red-600 text-red-800 dark:text-red-400 opacity-100";
+                                    btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 text-gray-400 opacity-50 hover:opacity-100";
+                                } else {
+                                    btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-700 dark:text-green-500 transition-colors border border-green-200 dark:border-green-800/50";
+                                    btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-700 dark:text-red-500 transition-colors border border-red-200 dark:border-red-800/50";
+                                }
+                            }
+                        } else {
+                            alert(data.error || "An error occurred.");
+                        }
+                    });
+                } 
+            </script>
+            <div class="text-center pt-4">
+                <a href="{{ url_for('experience') }}" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-airred hover:bg-airdarkred focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airred transition-colors">
+                    View All Experiences
+                </a>
+            </div>
+        {% else %}
+            <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-8 text-center text-gray-500 dark:text-gray-400">
+                No experiences have been posted yet.
+            </div>
+        {% endif %}
     </div>
     
     <!-- Categories -->

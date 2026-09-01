@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from functools import wraps
-
+from werkzeug.utils import secure_filename
 load_dotenv()
 
 app = Flask(__name__)
@@ -35,16 +35,19 @@ def check_maintenance():
         # Display maintenance page for everything else
         return render_template('maintenance.html'), 503
 
+CATEGORIES = [
+    "Facilities & Infrastructure",
+    "Academic Policies",
+    "Fee Discrepancies",
+    "Staff Conduct",
+    "Other Incident"
+]
+
 @app.route('/')
 def index():
-    categories = [
-        "Facilities & Infrastructure",
-        "Academic Policies",
-        "Fee Discrepancies",
-        "Staff Conduct",
-        "Other Incident"
-    ]
-    category_counts = {c: 0 for c in categories}
+    category_counts = {c: 0 for c in CATEGORIES}
+    
+    recent_experiences = []
     
     if supabase:
         try:
@@ -53,20 +56,37 @@ def index():
                 cat = row.get('category')
                 if cat in category_counts:
                     category_counts[cat] += 1
+            
+            recent_response = supabase.table('experiences').select('*').order('id', desc=True).limit(5).execute()
+            recent_experiences = recent_response.data
         except Exception as e:
             print(f"Supabase error: {e}")
+            for exp in mock_experiences:
+                cat = exp.get('category')
+                if cat in category_counts:
+                    category_counts[cat] += 1
+            recent_experiences = mock_experiences[:5]
     else:
         for exp in mock_experiences:
             cat = exp.get('category')
             if cat in category_counts:
                 category_counts[cat] += 1
+        recent_experiences = mock_experiences[:5]
                 
-    return render_template('index.html', category_counts=category_counts)
+    return render_template('index.html', category_counts=category_counts, recent_experiences=recent_experiences)
 
 @app.route('/timeline')
 def timeline():
-    # Example logic: events = supabase.table('timeline').select('*').execute().data
     events = [] 
+    if supabase:
+        try:
+            response = supabase.table('incidents').select('*').order('id', desc=False).execute()
+            events = response.data
+        except Exception as e:
+            print(f"Supabase error fetching timeline: {e}")
+            events = mock_timeline
+    else:
+        events = mock_timeline
     return render_template('timeline.html', events=events)
 
 @app.route('/archive')
@@ -78,8 +98,54 @@ def archive():
             evidence_list = response.data
         except Exception as e:
             print(f"Supabase error fetching evidence: {e}")
+            evidence_list = mock_evidence
+    else:
+        evidence_list = mock_evidence
             
     return render_template('archive.html', evidence=evidence_list)
+
+app.config['UPLOAD_FOLDER_TEACHERS'] = 'static/uploads/teachers'
+
+@app.route('/teachers', methods=['GET', 'POST'])
+def teachers():
+    if request.method == 'POST':
+        if 'user_logged_in' not in session and 'admin_logged_in' not in session:
+            flash('You must be logged in to add a teacher.', 'error')
+            return redirect(url_for('login'))
+            
+        name = request.form.get('name')
+        subject = request.form.get('subject')
+        description = request.form.get('description')
+        
+        image_url = ""
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                file.save(filepath)
+                image_url = '/' + filepath
+
+        new_teacher = {
+            "id": len(mock_teachers) + 1,
+            "name": name,
+            "subject": subject,
+            "description": description,
+            "image_url": image_url or "https://via.placeholder.com/800x600?text=No+Image"
+        }
+        mock_teachers.insert(0, new_teacher)
+        flash('Teacher profile submitted successfully.', 'success')
+        return redirect(url_for('teachers'))
+        
+    return render_template('teachers.html', teachers=mock_teachers)
+
+@app.route('/teacher/<int:teacher_id>')
+def teacher_detail(teacher_id):
+    teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
+    if not teacher:
+        flash('Teacher not found.', 'error')
+        return redirect(url_for('teachers'))
+    return render_template('teacher_detail.html', teacher=teacher)
 
 @app.route('/document')
 def document():
@@ -120,7 +186,7 @@ mock_experiences = [
     {
         "id": 4,
         "name": "Anonymous",
-        "category": "Policies & Rules",
+        "category": "Academic Policies",
         "date": "2026-07-12",
         "title": "Forced Religious Practices & Discrimination",
         "details": "The school administrators are forcing students to sing and dance to Christian songs, practically forcing a change of religion. Additionally, there is blatant religious discrimination regarding holidays; they give holidays for Muslim and Christian celebrations but deny them for Hindu celebrations, such as refusing to give a holiday on Hanuman Jayanti.",
@@ -144,14 +210,228 @@ mock_experiences = [
         "date": "2026-07-09",
         "title": "Unhealthy Canteen Food",
         "details": "Despite being a school that should promote health, the canteen itself sells unhealthy junk food to students.",
-        "is_verified": True,
-        "is_anonymous": True
     }
 ]
 
+for exp in mock_experiences:
+    exp['reactions'] = {'👍': 0, '❤️': 0, '😂': 0, '😮': 0, '😢': 0, '🙏': 0}
+    exp['helpful_votes'] = {'yes': 0, 'no': 0}
+
+@app.route('/api/experience/<int:exp_id>/react', methods=['POST'])
+def react_experience(exp_id):
+    session_key = f'reacted_exp_{exp_id}'
+    data = request.json
+    emoji = data.get('emoji')
+    
+    exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+    if not exp or 'reactions' not in exp or emoji not in exp['reactions']:
+        return jsonify({'success': False, 'error': 'Experience or valid emoji not found'}), 404
+        
+    current_reaction = session.get(session_key)
+    
+    # Handle legacy boolean session values from previous code version
+    if current_reaction is True:
+        session.pop(session_key, None)
+        current_reaction = None
+        
+    if current_reaction:
+        if current_reaction == emoji:
+            # Revert the reaction
+            exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
+            session.pop(session_key, None)
+            return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'reverted', 'selected': None})
+        else:
+            # Change the reaction
+            exp['reactions'][current_reaction] = max(0, exp['reactions'][current_reaction] - 1)
+            exp['reactions'][emoji] += 1
+            session[session_key] = emoji
+            return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'changed', 'selected': emoji})
+            
+    # New reaction
+    exp['reactions'][emoji] += 1
+    session[session_key] = emoji
+    return jsonify({'success': True, 'reactions': exp['reactions'], 'action': 'added', 'selected': emoji})
+
+@app.route('/api/experience/<int:exp_id>/vote', methods=['POST'])
+def vote_experience(exp_id):
+    session_key = f'voted_exp_{exp_id}'
+    data = request.json
+    vote = data.get('vote')
+    
+    exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
+    if not exp or 'helpful_votes' not in exp or vote not in exp['helpful_votes']:
+        return jsonify({'success': False, 'error': 'Experience or vote type not found'}), 404
+        
+    current_vote = session.get(session_key)
+    if current_vote:
+        if current_vote == vote:
+            # Revert the vote
+            exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
+            session.pop(session_key, None)
+            return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'reverted', 'selected': None})
+        else:
+            # Change the vote
+            exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'][current_vote] - 1)
+            exp['helpful_votes'][vote] += 1
+            session[session_key] = vote
+            return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'changed', 'selected': vote})
+            
+    # New vote
+    exp['helpful_votes'][vote] += 1
+    session[session_key] = vote
+    return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': 'added', 'selected': vote})
+
 mock_users = []
+mock_evidence = []
+mock_timeline = []
 
+mock_teachers = [
+    {
+        "id": 1,
+        "name": "Physics Teacher",
+        "subject": "Physics",
+        "description": """
+<h1 class="text-xl font-bold mb-4">The Legendary Physics Teacher: A Scientific Investigation 💀</h1>
+<p class="mb-2">Every school has that one teacher.</p>
+<p class="mb-2">The teacher who walks into class with the confidence of a man who has personally solved every problem in the textbook, while the students are still trying to figure out what the question is asking.</p>
+<p class="mb-2">And then there is <strong>this guy.</strong></p>
+<p class="mb-2">A Physics teacher for Class 11 and 12.</p>
+<p class="mb-2">A man responsible for teaching Newton's laws, vectors, gravitation, rotational motion, work, energy and everything else that makes students question their life choices.</p>
+<p class="mb-4">Yet somehow, the biggest unsolved problem in this entire classroom is:</p>
+<p class="mb-4"><strong>How does this man have so much confidence in that photograph?</strong> 💀</p>
 
+<p class="mb-2">Let's begin with the outfit.</p>
+<p class="mb-2">The bow tie is clearly trying to tell us: <strong>“James Bond.”</strong></p>
+<p class="mb-4">Unfortunately, the pose is replying: <strong>“Sir, where is my Uber?”</strong> 😭</p>
+
+<p class="mb-2">The suit is formal. The shoes are polished. The bow tie is fighting for survival. And the plants in the background have somehow become the most photogenic characters in the entire picture.</p>
+<p class="mb-2">The photographer probably said: <em>“Sir, just pose naturally.”</em></p>
+<p class="mb-4">And bro immediately entered <strong>staff-meeting mode.</strong></p>
+
+<p class="mb-2">One hand in the pocket. One hand hanging down. Expression completely undecided. Bro wasn't posing. <strong>He was buffering.</strong> 💀</p>
+<p class="mb-2">He teaches vectors, yet his arms are pointing in completely different directions.</p>
+<p class="mb-2">He teaches equilibrium, yet this photograph is the most unstable system ever observed.</p>
+<p class="mb-4">He teaches gravitation, but somehow the only thing experiencing gravitational collapse is his aura. 📉</p>
+
+<p class="mb-2">Newton gave us three laws of motion. This man has apparently discovered a fourth:</p>
+<p class="mb-6"><strong>If the photographer says “pose,” immediately forget how the human body works.</strong></p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h2 class="text-lg font-bold mb-4">The Physics Department Has a Problem</h2>
+<p class="mb-2">The funniest thing is that this isn't just some random man in a suit. This is a <strong>Physics teacher for Class 11 and 12.</strong> Which makes everything ten times funnier.</p>
+<p class="mb-2">He can explain complicated equations, but apparently cannot explain the fundamental equation:</p>
+<p class="mb-4"><strong>Photographer + Camera + Pose = Please Try Again.</strong></p>
+
+<p class="mb-2">He teaches rotational motion. Meanwhile, his students' heads are rotating after he explains a numerical for 25 minutes.</p>
+<p class="mb-2">He teaches work and energy. Yet somehow the students are doing all the work while the remaining classroom energy disappears.</p>
+<p class="mb-4">He teaches time-related concepts. And ironically, he has apparently mastered the art of making <strong>time disappear.</strong> 💀</p>
+
+<p class="mb-2">The syllabus is already finished. The chapters are done. The revision is done. The doubts are done. Everyone thinks the period will finally be peaceful.</p>
+<p class="mb-2">Then comes the immortal sentence:</p>
+<p class="mb-2"><strong>“Actually, let me tell you something…”</strong></p>
+<p class="mb-4">And suddenly another 20 minutes have vanished.</p>
+
+<p class="mb-2">Bro doesn't waste time. <strong>He conducts experiments on it.</strong></p>
+<p class="mb-6">At this point, Class 11 and 12 don't need another Physics chapter. They need a stopwatch.</p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h2 class="text-lg font-bold mb-4">The Mysterious Classroom Justice System</h2>
+<p class="mb-4">Now we reach the most fascinating part of this scientific investigation. According to the completely exaggerated student-lore version of events, the classroom apparently operates under a strange set of disciplinary laws.</p>
+
+<p class="mb-2">Girls: <strong>HAHAHAHAHAHAHAHA!</strong></p>
+<p class="mb-4">Sir: “Okay, okay.”</p>
+
+<p class="mb-2">Boys: <em>one tiny sound</em></p>
+<p class="mb-4">Sir: <strong>“WHO WAS THAT?”</strong> 💀</p>
+
+<p class="mb-2">A girl could apparently produce enough noise to wake up the entire chemistry department and the class would continue.</p>
+<p class="mb-4">A boy drops his pen: <strong>“WHY ARE YOU DISTURBING THE CLASS?”</strong></p>
+
+<p class="mb-4">At this point, the boys aren't afraid of Physics. <strong>They're afraid of breathing too loudly.</strong> 😭</p>
+
+<p class="mb-2">Newton's third law states that every action has an equal and opposite reaction. Apparently that law doesn't apply to classroom discipline. Because in this classroom:</p>
+<p class="mb-2"><strong>Girl makes noise → gentle warning.</strong></p>
+<p class="mb-4"><strong>Boy makes noise → immediate investigation by the Physics Department.</strong></p>
+
+<p class="mb-6">The boys aren't students anymore. They're <strong>suspects.</strong> 💀</p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h2 class="text-lg font-bold mb-4">The Famous Physics-Chemistry Connection</h2>
+<p class="mb-4">And then there is the plot twist. Our Physics teacher is engaged to the <strong>Class 10 Chemistry teacher.</strong></p>
+
+<p class="mb-2">Physics + Chemistry. Force + Reaction. Motion + Reaction.</p>
+<p class="mb-4">Apparently, the school has accidentally created its own interdisciplinary research project. 💀</p>
+
+<p class="mb-4">The students are studying scientific bonding in the classroom while their teachers are demonstrating it in real life.</p>
+
+<p class="mb-4">At this point, the staff room isn't a staff room. It's a <strong>research laboratory.</strong></p>
+
+<p class="mb-2">The Physics teacher explains forces. The Chemistry teacher explains reactions. Together they have apparently demonstrated:</p>
+<p class="mb-4"><strong>Force + Reaction = Engagement.</strong> 😭</p>
+
+<p class="mb-6">Meanwhile, Class 11 and 12 are sitting there wondering: <strong>“Sir, is this in the syllabus?”</strong></p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h2 class="text-lg font-bold mb-4">The Great Side-Quest Master</h2>
+<p class="mb-4">One of his greatest abilities is apparently finding a completely unnecessary side quest after everything important has already been completed.</p>
+
+<p class="mb-4">Syllabus? Finished. Chapter? Finished. Revision? Finished. Doubts? Finished. Free time? <strong>Not anymore.</strong> 💀</p>
+
+<p class="mb-4">Somehow there is always one more story. One more explanation. One more conversation. One more completely unrelated topic.</p>
+
+<p class="mb-2">Students are sitting there thinking: <strong>“Sir, the period is over.”</strong></p>
+<p class="mb-4">And somewhere in the distance: <strong>“Just one last thing...”</strong></p>
+
+<p class="mb-6">That “one last thing” has more sequels than a Marvel movie. 😭</p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h2 class="text-lg font-bold mb-4">The Photograph That Started Everything</h2>
+<p class="mb-4">But none of this would matter if the photograph wasn't so devastatingly funny.</p>
+
+<p class="mb-4">The bow tie is trying to increase the sophistication. The suit is trying to establish authority. The shoes are trying to maintain professionalism. The plants are trying to make the background respectable.</p>
+
+<p class="mb-4">And the man in the middle is just standing there like: <strong>“Yes. This is definitely my best angle.”</strong></p>
+
+<p class="mb-4">The photographer probably took 200 pictures. Some were probably blurry. Some were probably badly lit. Some probably had someone walking behind him. And somehow...</p>
+
+<p class="mb-4"><strong>THIS ONE SURVIVED QUALITY CONTROL.</strong> 💀</p>
+
+<p class="mb-6">That's the real achievement. Not teaching Physics. Not completing the syllabus. Not surviving Class 11 and 12. <strong>Getting this photograph approved.</strong></p>
+
+<hr class="my-6 border-gray-200 dark:border-gray-700">
+
+<h1 class="text-xl font-bold mb-4">Final Scientific Assessment</h1>
+<p class="mb-4">After extensive research, observation and absolutely unnecessary analysis, the results are conclusive:</p>
+
+<ul class="list-disc pl-5 mb-6 space-y-2">
+    <li><strong>Physics:</strong> Passed</li>
+    <li><strong>Chemistry connection:</strong> Confirmed</li>
+    <li><strong>Syllabus:</strong> Finished</li>
+    <li><strong>Time wasted:</strong> Unquantifiable</li>
+    <li><strong>Classroom discipline:</strong> Highly questionable</li>
+    <li><strong>Bow tie:</strong> Fighting for its life</li>
+    <li><strong>Pose:</strong> Failed practical</li>
+    <li><strong>Background plants:</strong> Carried the photograph</li>
+    <li><strong>Self-confidence:</strong> Surprisingly high</li>
+    <li><strong>Photographic judgment:</strong> Under investigation</li>
+    <li><strong>Aura:</strong> Experiencing free fall</li>
+</ul>
+
+<p class="mb-2"><strong>Final Equation:</strong></p>
+<h2 class="text-lg font-bold mb-2">Physics + Chemistry + Bow Tie + Awkward Pose + Classroom Side Quests =</h2>
+<h2 class="text-xl font-black text-airred mb-6">THE MOST OVERQUALIFIED WAY TO LOOK LIKE YOU'RE STILL WAITING FOR SOMEONE TO TELL YOU WHERE TO STAND. 💀</h2>
+
+<p class="mb-2"><strong>Final result: FAIL.</strong></p>
+<p class="mb-2 text-lg"><strong>Sir, please remain after class. We need to discuss your photograph.</strong></p>
+""",
+        "image_url": "/static/uploads/teachers/physics_teacher.jpg"
+    }
+]
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
     if request.method == 'POST':
@@ -192,6 +472,8 @@ def experience():
         else:
             # Fallback to mock data for local testing
             new_exp["id"] = len(mock_experiences) + 1
+            new_exp['reactions'] = {'👍': 0, '❤️': 0, '😂': 0, '😮': 0, '😢': 0, '🙏': 0}
+            new_exp['helpful_votes'] = {'yes': 0, 'no': 0}
             mock_experiences.insert(0, new_exp)
             flash('Your experience has been submitted (saved to local mock DB pending Supabase setup).', 'success')
             
@@ -232,7 +514,7 @@ def experience():
         else:
             experiences = mock_experiences
 
-    return render_template('experience.html', experiences=experiences, current_category=category_filter)
+    return render_template('experience.html', experiences=experiences, current_category=category_filter, categories=CATEGORIES)
 
 @app.route('/edit_experience/<int:exp_id>', methods=['POST'])
 def edit_experience(exp_id):
@@ -335,8 +617,12 @@ def admin():
         except Exception as e:
             print(f"Supabase error: {e}")
             experiences = mock_experiences
+            evidence_list = mock_evidence
+            incidents_list = mock_timeline
     else:
         experiences = mock_experiences
+        evidence_list = mock_evidence
+        incidents_list = mock_timeline
         analytics['total'] = len(experiences)
         analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
         analytics['pending'] = analytics['total'] - analytics['verified']
@@ -353,15 +639,16 @@ def verify_experience(exp_id):
             new_status = not current['is_verified']
             supabase.table('experiences').update({'is_verified': new_status}).eq('id', exp_id).execute()
             flash('Experience verification status updated.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Error updating status: {str(e)}', 'error')
-    else:
-        for exp in mock_experiences:
-            if exp['id'] == exp_id:
-                exp['is_verified'] = not exp['is_verified']
-                flash('Status updated (local mock data).', 'success')
-                break
-                
+            print(f'Error updating status: {str(e)}')
+            
+    for exp in mock_experiences:
+        if exp['id'] == exp_id:
+            exp['is_verified'] = not exp['is_verified']
+            flash('Status updated (local mock data).', 'success')
+            break
+            
     return redirect(url_for('admin'))
 
 @app.route('/admin/delete_experience/<int:exp_id>', methods=['POST'])
@@ -371,12 +658,13 @@ def delete_experience(exp_id):
         try:
             supabase.table('experiences').delete().eq('id', exp_id).execute()
             flash('Experience deleted successfully.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Error deleting experience: {str(e)}', 'error')
-    else:
-        global mock_experiences
-        mock_experiences = [exp for exp in mock_experiences if exp['id'] != exp_id]
-        flash('Experience deleted (local mock data).', 'success')
+            print(f'Error deleting experience: {str(e)}')
+            
+    global mock_experiences
+    mock_experiences = [exp for exp in mock_experiences if exp['id'] != exp_id]
+    flash('Experience deleted (local mock data).', 'success')
         
     return redirect(url_for('admin'))
 
@@ -400,10 +688,21 @@ def admin_bulk_action():
                 for exp_id in selected_ids:
                     supabase.table('experiences').update({'is_verified': True}).eq('id', int(exp_id)).execute()
                 flash(f'Successfully verified {len(selected_ids)} experiences.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Bulk action error: {str(e)}', 'error')
-    else:
-        flash('Bulk actions require Supabase.', 'error')
+            print(f'Bulk action error: {str(e)}')
+            
+    global mock_experiences
+    selected_ids_int = [int(id) for id in selected_ids]
+    
+    if action == 'delete':
+        mock_experiences = [exp for exp in mock_experiences if exp['id'] not in selected_ids_int]
+        flash(f'Successfully deleted {len(selected_ids)} experiences (local mock data).', 'success')
+    elif action == 'verify':
+        for exp in mock_experiences:
+            if exp['id'] in selected_ids_int:
+                exp['is_verified'] = True
+        flash(f'Successfully verified {len(selected_ids)} experiences (local mock data).', 'success')
         
     return redirect(url_for('admin'))
 
@@ -432,12 +731,13 @@ def admin_add_experience():
         try:
             supabase.table('experiences').insert(new_exp).execute()
             flash('Experience forcefully added.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Error adding experience: {str(e)}', 'error')
-    else:
-        new_exp["id"] = len(mock_experiences) + 1
-        mock_experiences.insert(0, new_exp)
-        flash('Experience added (local mock data).', 'success')
+            print(f'Error adding experience: {str(e)}')
+            
+    new_exp["id"] = len(mock_experiences) + 1
+    mock_experiences.insert(0, new_exp)
+    flash('Experience added (local mock data).', 'success')
         
     return redirect(url_for('admin'))
 
@@ -465,10 +765,13 @@ def upload_evidence():
             try:
                 supabase.table('evidence').insert(new_evidence).execute()
                 flash('Evidence uploaded successfully.', 'success')
+                return redirect(url_for('admin'))
             except Exception as e:
-                flash(f'Error uploading evidence: {str(e)}', 'error')
-        else:
-            flash('Evidence upload requires Supabase configuration.', 'error')
+                print(f'Error uploading evidence: {str(e)}')
+                
+        new_evidence['id'] = len(mock_evidence) + 1
+        mock_evidence.insert(0, new_evidence)
+        flash('Evidence uploaded (local mock data).', 'success')
             
     return redirect(url_for('admin'))
 
@@ -479,10 +782,13 @@ def delete_evidence(ev_id):
         try:
             supabase.table('evidence').delete().eq('id', ev_id).execute()
             flash('Evidence deleted successfully.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Error deleting evidence: {str(e)}', 'error')
-    else:
-        flash('Evidence deletion requires Supabase configuration.', 'error')
+            print(f'Error deleting evidence: {str(e)}')
+            
+    global mock_evidence
+    mock_evidence = [e for e in mock_evidence if e.get('id') != ev_id]
+    flash('Evidence deleted (local mock data).', 'success')
         
     return redirect(url_for('admin'))
 
@@ -508,10 +814,13 @@ def add_timeline():
             try:
                 supabase.table('incidents').insert(new_timeline).execute()
                 flash('Timeline event added successfully.', 'success')
+                return redirect(url_for('admin'))
             except Exception as e:
-                flash(f'Error adding timeline event: {str(e)}', 'error')
-        else:
-            flash('Timeline addition requires Supabase configuration.', 'error')
+                print(f'Error adding timeline event: {str(e)}')
+                
+        new_timeline['id'] = len(mock_timeline) + 1
+        mock_timeline.append(new_timeline)
+        flash('Timeline event added (local mock data).', 'success')
             
     return redirect(url_for('admin'))
 
@@ -522,10 +831,13 @@ def delete_timeline(inc_id):
         try:
             supabase.table('incidents').delete().eq('id', inc_id).execute()
             flash('Timeline event deleted successfully.', 'success')
+            return redirect(url_for('admin'))
         except Exception as e:
-            flash(f'Error deleting timeline event: {str(e)}', 'error')
-    else:
-        flash('Timeline deletion requires Supabase configuration.', 'error')
+            print(f'Error deleting timeline event: {str(e)}')
+            
+    global mock_timeline
+    mock_timeline = [t for t in mock_timeline if t.get('id') != inc_id]
+    flash('Timeline event deleted (local mock data).', 'success')
         
     return redirect(url_for('admin'))
 

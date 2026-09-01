@@ -80,11 +80,7 @@
                     <a href="{{ url_for('vip_treatment') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">VIP Treatment</a>
                     <a href="{{ url_for('archive') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Archive</a>
                     <a href="{{ url_for('experience') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Experiences</a>
-                    
-                    <button id="theme-toggle" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-airred rounded-lg text-sm p-1 ml-4 transition-colors">
-                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-                    </button>
+                    <a href="{{ url_for('teachers') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Teachers</a>                    
                     {% if session.get('admin_logged_in') %}
                     <a href="{{ url_for('admin') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">Admin</a>
                     <a href="{{ url_for('logout') }}" class="text-[13px] font-medium text-airred hover:text-airdarkred transition-colors ml-4">Logout</a>
@@ -94,6 +90,47 @@
                     {% else %}
                     <a href="{{ url_for('login') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">Log in</a>
                     <a href="{{ url_for('signup') }}" class="text-[13px] font-medium bg-airred text-white hover:bg-airdarkred px-3 py-1.5 rounded-lg transition-colors ml-3 shadow-sm">Sign up</a>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center ml-auto lg:ml-4">
+                    <button id="theme-toggle" type="button" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-airred rounded-lg text-sm p-1 transition-colors">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <button id="mobile-menu-btn" type="button" class="inline-flex lg:hidden items-center justify-center p-2 ml-2 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-airred" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Container -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-gray-800 absolute w-full left-0 top-16 shadow-lg">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="{{ url_for('policies') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Policies</a>
+                <a href="{{ url_for('principals_note') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Principal's Note</a>
+                <a href="{{ url_for('hall_of_shame') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Hall of Shame</a>
+                <a href="{{ url_for('fee_scam') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">The Fee Scam</a>
+                <a href="{{ url_for('vip_treatment') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">VIP Treatment</a>
+                <a href="{{ url_for('archive') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Archive</a>
+                <a href="{{ url_for('experience') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Experiences</a>
+                <a href="{{ url_for('teachers') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Teachers</a>
+            </div>
+            <div class="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
+                <div class="px-5 space-y-1">
+                    {% if session.get('admin_logged_in') %}
+                    <a href="{{ url_for('admin') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Admin</a>
+                    <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-airred hover:bg-gray-50 dark:hover:bg-gray-800">Logout</a>
+                    {% elif session.get('user_logged_in') %}
+                    <div class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 dark:text-gray-400">{{ session.get('user_username') or session.get('user_email') }}</div>
+                    <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-airred hover:bg-gray-50 dark:hover:bg-gray-800">Logout</a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Log in</a>
+                    <a href="{{ url_for('signup') }}" class="block px-3 py-2 rounded-md text-base font-medium bg-airred text-white hover:bg-airdarkred mt-2 text-center mx-2 shadow-sm">Sign up</a>
                     {% endif %}
                 </div>
             </div>
@@ -168,6 +205,14 @@
                     localStorage.setItem('color-theme', 'dark');
                 }
             }
+        });
+
+        // Mobile menu toggle logic
+        var mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        var mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('hidden');
         });
     </script>
 </body>
