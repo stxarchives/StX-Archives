@@ -328,6 +328,106 @@ def vote_experience(exp_id):
             
     return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
 
+@app.route('/api/teacher/<int:teacher_id>/react', methods=['POST'])
+def react_teacher(teacher_id):
+    session_key = f'reacted_teacher_{teacher_id}'
+    data = request.json
+    emoji = data.get('emoji')
+    
+    teacher = None
+    if supabase:
+        try:
+            response = supabase.table('teachers').select('*').eq('id', teacher_id).execute()
+            if response.data:
+                teacher = response.data[0]
+        except Exception as e:
+            print(f"Supabase error fetching teacher for react: {e}")
+            
+    if not teacher:
+        teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
+        
+    if not teacher or 'reactions' not in teacher or emoji not in teacher['reactions']:
+        return jsonify({'success': False, 'error': 'Teacher or valid emoji not found'}), 404
+        
+    current_reaction = session.get(session_key)
+    if current_reaction is True:
+        session.pop(session_key, None)
+        current_reaction = None
+        
+    if current_reaction:
+        if current_reaction == emoji:
+            teacher['reactions'][emoji] = max(0, teacher['reactions'][emoji] - 1)
+            session.pop(session_key, None)
+            action = 'reverted'
+            selected = None
+        else:
+            teacher['reactions'][current_reaction] = max(0, teacher['reactions'][current_reaction] - 1)
+            teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+            session[session_key] = emoji
+            action = 'changed'
+            selected = emoji
+    else:
+        teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+        session[session_key] = emoji
+        action = 'added'
+        selected = emoji
+        
+    if supabase:
+        try:
+            supabase.table('teachers').update({'reactions': teacher['reactions']}).eq('id', teacher_id).execute()
+        except Exception as e:
+            print(f"Supabase error updating teacher react: {e}")
+            
+    return jsonify({'success': True, 'reactions': teacher['reactions'], 'action': action, 'selected': selected})
+
+@app.route('/api/teacher/<int:teacher_id>/vote', methods=['POST'])
+def vote_teacher(teacher_id):
+    session_key = f'voted_teacher_{teacher_id}'
+    data = request.json
+    vote = data.get('vote')
+    
+    teacher = None
+    if supabase:
+        try:
+            response = supabase.table('teachers').select('*').eq('id', teacher_id).execute()
+            if response.data:
+                teacher = response.data[0]
+        except Exception as e:
+            print(f"Supabase error fetching teacher for vote: {e}")
+            
+    if not teacher:
+        teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
+        
+    if not teacher or 'helpful_votes' not in teacher or vote not in teacher['helpful_votes']:
+        return jsonify({'success': False, 'error': 'Teacher or vote type not found'}), 404
+        
+    current_vote = session.get(session_key)
+    if current_vote:
+        if current_vote == vote:
+            teacher['helpful_votes'][vote] = max(0, teacher['helpful_votes'][vote] - 1)
+            session.pop(session_key, None)
+            action = 'reverted'
+            selected = None
+        else:
+            teacher['helpful_votes'][current_vote] = max(0, teacher['helpful_votes'][current_vote] - 1)
+            teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+            session[session_key] = vote
+            action = 'changed'
+            selected = vote
+    else:
+        teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+        session[session_key] = vote
+        action = 'added'
+        selected = vote
+        
+    if supabase:
+        try:
+            supabase.table('teachers').update({'helpful_votes': teacher['helpful_votes']}).eq('id', teacher_id).execute()
+        except Exception as e:
+            print(f"Supabase error updating teacher vote: {e}")
+            
+    return jsonify({'success': True, 'helpful_votes': teacher['helpful_votes'], 'action': action, 'selected': selected})
+
 mock_users = []
 mock_evidence = []
 mock_timeline = []
@@ -479,6 +579,10 @@ mock_teachers = [
         "image_url": "/static/uploads/teachers/physics_teacher.jpg"
     }
 ]
+
+for teacher in mock_teachers:
+    teacher['reactions'] = {'🔥': 0, '👏': 0, '😢': 0, '😡': 0}
+    teacher['helpful_votes'] = {'yes': 0, 'no': 0}
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
     if request.method == 'POST':

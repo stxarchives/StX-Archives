@@ -26,7 +26,111 @@
             <div class="p-8 md:p-12 text-gray-800 dark:text-gray-200 leading-relaxed text-base prose dark:prose-invert max-w-none">
                 {{ teacher.description | safe }}
             </div>
+            
+            <div class="px-8 md:px-12 pb-8 border-t border-gray-100 dark:border-gray-800 pt-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div id="reactions-container-{{ teacher.id }}" class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
+                        {% set reacted = session.get('reacted_teacher_' ~ teacher.id) %}
+                        {% if teacher.reactions %}
+                            {% for emoji, count in teacher.reactions.items() %}
+                            <button id="btn-react-{{ teacher.id }}-{{ loop.index }}" onclick="reactToTeacher({{ teacher.id }}, '{{ emoji }}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap {% if reacted == emoji %}bg-gray-200 dark:bg-[#333] border-gray-400 dark:border-gray-500 opacity-100{% elif reacted and reacted != True %}bg-[#1a1a1a] border-gray-700 opacity-50 hover:opacity-100{% else %}bg-[#1a1a1a] hover:bg-[#222] border-gray-700{% endif %}">
+                                <span class="text-base">{{ emoji }}</span>
+                                <span id="react-count-{{ teacher.id }}-{{ emoji }}" class="text-xs font-semibold text-gray-400">{{ count }}</span>
+                            </button>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center gap-3 shrink-0">
+                        {% set voted = session.get('voted_teacher_' ~ teacher.id) %}
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Helpful?</span>
+                        {% if teacher.helpful_votes %}
+                            <button id="btn-vote-yes-{{ teacher.id }}" onclick="voteTeacher({{ teacher.id }}, 'yes')" class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border {% if voted == 'yes' %}bg-green-900/60 border-green-600 text-green-400 opacity-100{% elif voted == 'no' %}bg-[#1a1a1a] border-gray-700 text-gray-500 opacity-50 hover:opacity-100{% else %}bg-green-900/20 hover:bg-green-900/40 text-green-500 border-green-800/50{% endif %}">
+                                <span class="text-xs font-bold">Yes</span>
+                                <span id="vote-yes-{{ teacher.id }}" class="text-xs ml-1">{{ teacher.helpful_votes.yes }}</span>
+                            </button>
+                            <button id="btn-vote-no-{{ teacher.id }}" onclick="voteTeacher({{ teacher.id }}, 'no')" class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border {% if voted == 'no' %}bg-red-900/60 border-red-600 text-red-400 opacity-100{% elif voted == 'yes' %}bg-[#1a1a1a] border-gray-700 text-gray-500 opacity-50 hover:opacity-100{% else %}bg-red-900/20 hover:bg-red-900/40 text-red-500 border-red-800/50{% endif %}">
+                                <span class="text-xs font-bold">No</span>
+                                <span id="vote-no-{{ teacher.id }}" class="text-xs ml-1">{{ teacher.helpful_votes.no }}</span>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+</div>
+
+<script>
+    function reactToTeacher(teacherId, emoji) {
+        fetch(`/api/teacher/${teacherId}/react`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ emoji: emoji })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const container = document.getElementById(`reactions-container-${teacherId}`);
+                if (container) {
+                    const buttons = container.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        const btnEmoji = btn.querySelector('.text-base').innerText;
+                        const countSpan = btn.querySelector('.text-xs');
+                        countSpan.innerText = data.reactions[btnEmoji];
+                        
+                        if (data.selected === btnEmoji) {
+                            btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap bg-gray-200 dark:bg-[#333] border-gray-400 dark:border-gray-500 opacity-100";
+                        } else if (data.selected) {
+                            btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap bg-[#1a1a1a] border-gray-700 opacity-50 hover:opacity-100";
+                        } else {
+                            btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1a1a1a] hover:bg-[#222] transition-colors border border-gray-700 whitespace-nowrap";
+                        }
+                    });
+                }
+            } else {
+                alert(data.error || "An error occurred.");
+            }
+        });
+    }
+
+    function voteTeacher(teacherId, voteType) {
+        fetch(`/api/teacher/${teacherId}/vote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ vote: voteType })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`vote-yes-${teacherId}`).innerText = data.helpful_votes.yes;
+                document.getElementById(`vote-no-${teacherId}`).innerText = data.helpful_votes.no;
+                
+                const btnYes = document.getElementById(`btn-vote-yes-${teacherId}`);
+                const btnNo = document.getElementById(`btn-vote-no-${teacherId}`);
+                
+                if (btnYes && btnNo) {
+                    if (data.selected === 'yes') {
+                        btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-green-900/60 border-green-600 text-green-400 opacity-100";
+                        btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-[#1a1a1a] border-gray-700 text-gray-500 opacity-50 hover:opacity-100";
+                    } else if (data.selected === 'no') {
+                        btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-red-900/60 border-red-600 text-red-400 opacity-100";
+                        btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border bg-[#1a1a1a] border-gray-700 text-gray-500 opacity-50 hover:opacity-100";
+                    } else {
+                        btnYes.className = "flex items-center gap-1.5 px-3 py-1 rounded-md bg-green-900/20 hover:bg-green-900/40 text-green-500 transition-colors border border-green-800/50";
+                        btnNo.className = "flex items-center gap-1.5 px-3 py-1 rounded-md bg-red-900/20 hover:bg-red-900/40 text-red-500 transition-colors border border-red-800/50";
+                    }
+                }
+            } else {
+                alert(data.error || "An error occurred.");
+            }
+        });
+    }
+</script>
     </div>
 </div>
 {% endblock %}
