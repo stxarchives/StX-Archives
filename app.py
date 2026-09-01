@@ -225,7 +225,7 @@ mock_experiences = [
 ]
 
 for exp in mock_experiences:
-    exp['reactions'] = {'🔥': 0, '👏': 0, '😢': 0, '😡': 0}
+    exp['reactions'] = {'🔥': 0, '👏': 0, '😂': 0, '😢': 0, '😡': 0}
     exp['helpful_votes'] = {'yes': 0, 'no': 0}
 
 @app.route('/api/experience/<int:exp_id>/react', methods=['POST'])
@@ -581,7 +581,7 @@ mock_teachers = [
 ]
 
 for teacher in mock_teachers:
-    teacher['reactions'] = {'🔥': 0, '👏': 0, '😢': 0, '😡': 0}
+    teacher['reactions'] = {'🔥': 0, '👏': 0, '😂': 0, '😢': 0, '😡': 0}
     teacher['helpful_votes'] = {'yes': 0, 'no': 0}
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
