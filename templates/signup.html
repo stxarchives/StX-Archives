@@ -37,9 +37,12 @@
                 </button>
             </form>
         </div>
-        <div class="bg-gray-50 dark:bg-[#111] px-10 py-5 border-t border-gray-100 dark:border-gray-800 text-center">
+        <div class="bg-gray-50 dark:bg-[#111] px-10 py-5 border-t border-gray-100 dark:border-gray-800 text-center space-y-3">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Already have an account? <a href="{{ url_for('login') }}" class="text-airred hover:text-airdarkred font-bold transition-colors">Log in here</a>
+            </p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 max-w-sm mx-auto">
+                Having trouble signing up? If the server limit has been reached, please email <a href="mailto:stx.archives@proton.me" class="font-bold underline hover:text-gray-300">stx.archives@proton.me</a> to request a manual account creation.
             </p>
         </div>
     </div>
