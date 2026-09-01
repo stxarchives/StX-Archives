@@ -138,21 +138,57 @@ def teachers():
                 image_url = '/' + filepath
 
         new_teacher = {
-            "id": len(mock_teachers) + 1,
             "name": name,
             "subject": subject,
             "description": description,
             "image_url": image_url or "https://via.placeholder.com/800x600?text=No+Image"
         }
+        
+        if supabase:
+            try:
+                # Add default reactions/votes for new inserts
+                new_teacher["reactions"] = {'🔥': 0, '👏': 0, '😂': 0, '😢': 0, '😡': 0}
+                new_teacher["helpful_votes"] = {'yes': 0, 'no': 0}
+                supabase.table('teachers').insert(new_teacher).execute()
+                flash('Teacher profile submitted successfully to Supabase.', 'success')
+                return redirect(url_for('teachers'))
+            except Exception as e:
+                print(f"Error adding teacher to Supabase: {e}")
+                flash('Falling back to local data.', 'error')
+
+        # Fallback
+        new_teacher["id"] = len(mock_teachers) + 1
+        new_teacher["reactions"] = {'🔥': 0, '👏': 0, '😂': 0, '😢': 0, '😡': 0}
+        new_teacher["helpful_votes"] = {'yes': 0, 'no': 0}
         mock_teachers.insert(0, new_teacher)
-        flash('Teacher profile submitted successfully.', 'success')
+        flash('Teacher profile submitted successfully (local).', 'success')
         return redirect(url_for('teachers'))
         
-    return render_template('teachers.html', teachers=mock_teachers)
+    teachers_data = mock_teachers
+    if supabase:
+        try:
+            response = supabase.table('teachers').select('*').order('id', desc=True).execute()
+            if response.data:
+                teachers_data = response.data
+        except Exception as e:
+            print(f"Supabase error fetching teachers: {e}")
+            
+    return render_template('teachers.html', teachers=teachers_data)
 
 @app.route('/teacher/<int:teacher_id>')
 def teacher_detail(teacher_id):
-    teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
+    teacher = None
+    if supabase:
+        try:
+            response = supabase.table('teachers').select('*').eq('id', teacher_id).execute()
+            if response.data:
+                teacher = response.data[0]
+        except Exception as e:
+            print(f"Supabase error fetching teacher detail: {e}")
+            
+    if not teacher:
+        teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
+        
     if not teacher:
         flash('Teacher not found.', 'error')
         return redirect(url_for('teachers'))
