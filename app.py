@@ -793,23 +793,35 @@ def edit_experience(exp_id):
 def policies():
     return render_template('policies.html')
 
+def get_page_content(page_id, default_content=""):
+    if supabase:
+        try:
+            res = supabase.table('pages').select('content').eq('id', page_id).execute()
+            if res.data:
+                return res.data[0]['content']
+        except:
+            pass
+    return default_content
+
 @app.route('/principals-note')
 def principals_note():
-    return render_template('principals_note.html')
-
-
+    content = get_page_content('principals_note', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('principals_note.html', content=content)
 
 @app.route('/hall-of-shame')
 def hall_of_shame():
-    return render_template('hall_of_shame.html')
+    content = get_page_content('hall_of_shame', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('hall_of_shame.html', content=content)
 
 @app.route('/fee-scam')
 def fee_scam():
-    return render_template('fee_scam.html')
+    content = get_page_content('fee_scam', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('fee_scam.html', content=content)
 
 @app.route('/vip-treatment')
 def vip_treatment():
-    return render_template('vip_treatment.html')
+    content = get_page_content('vip_treatment', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('vip_treatment.html', content=content)
 
 @app.route('/admin')
 @admin_required
@@ -863,7 +875,48 @@ def admin():
         analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
         analytics['pending'] = analytics['total'] - analytics['verified']
         
-    return render_template('admin.html', experiences=experiences, evidence=evidence_list, incidents=incidents_list, analytics=analytics)
+    pages_content = {}
+    if supabase:
+        try:
+            res = supabase.table('pages').select('*').execute()
+            if res.data:
+                for p in res.data:
+                    pages_content[p['id']] = p['content']
+        except:
+            pass
+
+    return render_template('admin.html', 
+                           experiences=experiences, 
+                           evidence=evidence_list,
+                           incidents=incidents_list,
+                           analytics=analytics,
+                           pages=pages_content,
+                           maintenance_mode=is_maintenance)
+
+@app.route('/admin/save-page', methods=['POST'])
+@admin_required
+def save_page():
+    page_id = request.form.get('page_id')
+    content = request.form.get('content')
+    
+    if not page_id or content is None:
+        flash('Invalid page data.', 'error')
+        return redirect(url_for('admin'))
+        
+    if supabase:
+        try:
+            # Upsert the page content
+            supabase.table('pages').upsert({
+                'id': page_id,
+                'content': content
+            }).execute()
+            flash(f'Page "{page_id}" updated successfully!', 'success')
+        except Exception as e:
+            flash(f'Error saving page: {e}', 'error')
+    else:
+        flash('Supabase not connected. Cannot save page.', 'error')
+        
+    return redirect(url_for('admin'))
 
 @app.route('/admin/verify/<int:exp_id>', methods=['POST'])
 @admin_required
