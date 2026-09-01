@@ -214,6 +214,15 @@
         mobileMenuBtn.addEventListener('click', function() {
             mobileMenu.classList.toggle('hidden');
         });
+
+        // Handle Supabase Auth Redirects
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const hash = window.location.hash;
+            const search = window.location.search;
+            if (hash.includes('type=signup') || hash.includes('type=recovery') || search.includes('type=signup') || search.includes('type=recovery')) {
+                window.location.href = "{{ url_for('login') }}?verified=true";
+            }
+        });
     </script>
 </body>
 </html>

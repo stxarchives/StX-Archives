@@ -1201,6 +1201,9 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET' and request.args.get('verified') == 'true':
+        flash('Email verified! Please log in with your credentials.', 'success')
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
