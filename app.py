@@ -146,9 +146,13 @@ def teachers():
         description = request.form.get('description')
         
         image_url = ""
+        
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+            
         if 'image' in request.files:
             file = request.files['image']
-            if file and file.filename != '':
+            if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 
                 if supabase:
