@@ -847,10 +847,16 @@ def admin_login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        with open('admin_credentials.txt', 'r') as f:
-            creds = f.readlines()
-            correct_username = creds[0].split(': ')[1].strip()
-            correct_password = creds[1].split(': ')[1].strip()
+        correct_username = os.environ.get('ADMIN_USERNAME', 'admin_portal')
+        correct_password = os.environ.get('ADMIN_PASSWORD', 'Tk(7p#Lw9$vM2qRz')
+        try:
+            with open('admin_credentials.txt', 'r') as f:
+                creds = f.readlines()
+                if len(creds) >= 2:
+                    correct_username = creds[0].split(': ')[1].strip()
+                    correct_password = creds[1].split(': ')[1].strip()
+        except FileNotFoundError:
+            pass
             
         if username == correct_username and password == correct_password:
             session['admin_logged_in'] = True
@@ -866,16 +872,25 @@ def change_password():
     current_password = request.form.get('current_password')
     new_password = request.form.get('new_password')
     
-    with open('admin_credentials.txt', 'r') as f:
-        creds = f.readlines()
-        correct_username = creds[0].split(': ')[1].strip()
-        correct_password = creds[1].split(': ')[1].strip()
+    correct_username = os.environ.get('ADMIN_USERNAME', 'admin_portal')
+    correct_password = os.environ.get('ADMIN_PASSWORD', 'Tk(7p#Lw9$vM2qRz')
+    try:
+        with open('admin_credentials.txt', 'r') as f:
+            creds = f.readlines()
+            if len(creds) >= 2:
+                correct_username = creds[0].split(': ')[1].strip()
+                correct_password = creds[1].split(': ')[1].strip()
+    except FileNotFoundError:
+        pass
         
     if current_password == correct_password:
-        with open('admin_credentials.txt', 'w') as f:
-            f.write(f"Username: {correct_username}\n")
-            f.write(f"Password: {new_password}\n")
-        flash('Admin password changed successfully.', 'success')
+        try:
+            with open('admin_credentials.txt', 'w') as f:
+                f.write(f"Username: {correct_username}\n")
+                f.write(f"Password: {new_password}\n")
+            flash('Admin password changed successfully.', 'success')
+        except OSError:
+            flash('Cannot change password on read-only server. Please update ADMIN_PASSWORD environment variable instead.', 'error')
     else:
         flash('Incorrect current password.', 'error')
         
