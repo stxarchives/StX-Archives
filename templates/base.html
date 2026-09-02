@@ -337,23 +337,23 @@
             
             container.appendChild(toast);
             
-            // Trigger animation in
-            requestAnimationFrame(() => {
+            // Trigger animation in with a tiny delay to ensure browser paints initial state
+            setTimeout(() => {
                 toast.classList.remove('translate-y-10', 'opacity-0');
-            });
+            }, 50);
             
-            // Auto dismiss after 4 seconds
+            // Auto dismiss after 5 seconds to give more time to read
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-x-full');
                 setTimeout(() => toast.remove(), 500);
-            }, 4000);
+            }, 5000);
         }
 
         // Initialize flash messages from Flask
         if (window.FLASH_MESSAGES && window.FLASH_MESSAGES.length > 0) {
-            window.FLASH_MESSAGES.forEach(msg => {
-                // msg is [category, message]
-                setTimeout(() => showToast(msg[0], msg[1]), 100);
+            window.FLASH_MESSAGES.forEach((msg, index) => {
+                // Stagger multiple messages slightly
+                setTimeout(() => showToast(msg[0], msg[1]), 100 + (index * 200));
             });
         }
     </script>

@@ -1955,7 +1955,11 @@ def login():
                 flash('Logged in successfully.', 'success')
                 return redirect(url_for('index'))
             except Exception as e:
-                flash('Invalid credentials or error logging in.', 'error')
+                error_msg = str(e).lower()
+                if 'email not confirmed' in error_msg:
+                    flash('Please verify your email address before logging in. Check your inbox for the verification link.', 'error')
+                else:
+                    flash('Invalid credentials or error logging in.', 'error')
         else:
             user = next((u for u in mock_users if u['email'] == email and u['password'] == password), None)
             if user:
