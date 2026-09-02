@@ -241,6 +241,8 @@ def document():
     return render_template('document.html')
 
 # Mock database for local testing if Supabase isn't connected yet
+mock_comments = []
+
 mock_experiences = [
     {
         "id": 1,
@@ -747,6 +749,15 @@ def experience():
         title = request.form.get('title')
         details = request.form.get('details')
         
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            filename = secure_filename(image_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+            os.makedirs(upload_folder, exist_ok=True)
+            image_file.save(os.path.join(upload_folder, filename))
+            image_url = f"/static/uploads/experiences/{filename}"
+        
         new_exp = {
             "name": name if name else "Anonymous",
             "email": email,
@@ -755,6 +766,7 @@ def experience():
             "date": date,
             "title": title,
             "details": details,
+            "image_url": image_url,
             "is_verified": False
         }
         
@@ -1575,6 +1587,124 @@ def logout():
             pass
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
+
+@app.route('/profile')
+def profile():
+    if 'user_logged_in' not in session:
+        flash('Please log in to view your profile.', 'error')
+        return redirect(url_for('login'))
+        
+    user_email = session.get('user_email')
+    user_experiences = []
+    
+    if supabase:
+        try:
+            res = supabase.table('experiences').select('*').eq('email', user_email).order('id', desc=True).execute()
+            user_experiences = res.data
+        except Exception as e:
+            flash(f"Error loading profile: {e}", "error")
+    else:
+        user_experiences = [e for e in mock_experiences if e.get('email') == user_email]
+        
+    stats = {
+        'total_posts': len(user_experiences),
+        'total_reactions': sum(sum(e.get('reactions', {}).values()) for e in user_experiences),
+        'total_helpful': sum(e.get('helpful_votes', {}).get('yes', 0) for e in user_experiences)
+    }
+        
+    return render_template('profile.html', experiences=user_experiences, stats=stats)
+
+@app.route('/api/experience/<int:exp_id>/comments', methods=['GET'])
+def get_comments(exp_id):
+    comments = []
+    if supabase:
+        try:
+            res = supabase.table('comments').select('*').eq('experience_id', exp_id).order('created_at', desc=False).execute()
+            comments = res.data
+        except Exception as e:
+            print(f"Error fetching comments: {e}")
+    else:
+        comments = [c for c in mock_comments if c.get('experience_id') == exp_id]
+        
+    return jsonify({'comments': comments})
+
+@app.route('/api/experience/<int:exp_id>/comment', methods=['POST'])
+def post_comment(exp_id):
+    if 'user_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    content = request.json.get('content')
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+        
+    name = session.get('user_username') or session.get('user_email', 'Anonymous')
+    email = session.get('user_email')
+    
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).isoformat()
+    
+    new_comment = {
+        'experience_id': exp_id,
+        'name': name,
+        'email': email,
+        'content': content,
+        'created_at': now_iso
+    }
+    
+    if supabase:
+        try:
+            res = supabase.table('comments').insert(new_comment).execute()
+            return jsonify({'success': True, 'comment': res.data[0]})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    else:
+        new_comment['id'] = len(mock_comments) + 1
+        mock_comments.append(new_comment)
+        return jsonify({'success': True, 'comment': new_comment})
+
+@app.route('/admin/export')
+def admin_export():
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    export_data = {
+        'experiences': [],
+        'teachers': [],
+        'evidence': [],
+        'comments': []
+    }
+    
+    if supabase:
+        try:
+            exp_res = supabase.table('experiences').select('*').execute()
+            export_data['experiences'] = exp_res.data
+            
+            teach_res = supabase.table('teachers').select('*').execute()
+            export_data['teachers'] = teach_res.data
+            
+            ev_res = supabase.table('evidence').select('*').execute()
+            export_data['evidence'] = ev_res.data
+            
+            com_res = supabase.table('comments').select('*').execute()
+            export_data['comments'] = com_res.data
+        except Exception as e:
+            print(f"Export Error: {e}")
+    else:
+        export_data['experiences'] = mock_experiences
+        export_data['teachers'] = mock_teachers
+        export_data['evidence'] = mock_evidence
+        export_data['comments'] = mock_comments
+
+    import json
+    response = app.response_class(
+        response=json.dumps(export_data, indent=4),
+        status=200,
+        mimetype='application/json'
+    )
+    from datetime import datetime
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    response.headers["Content-Disposition"] = f"attachment; filename=stx_archive_backup_{date_str}.json"
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

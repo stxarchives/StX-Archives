@@ -85,7 +85,7 @@
                     <a href="{{ url_for('admin') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">Admin</a>
                     <a href="{{ url_for('logout') }}" class="text-[13px] font-medium text-airred hover:text-airdarkred transition-colors ml-4">Logout</a>
                     {% elif session.get('user_logged_in') %}
-                    <span class="text-[13px] font-medium text-gray-400 ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">{{ session.get('user_username') or session.get('user_email') }}</span>
+                    <a href="{{ url_for('profile') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">{{ session.get('user_username') or session.get('user_email') }}</a>
                     <a href="{{ url_for('logout') }}" class="text-[13px] font-medium text-airred hover:text-airdarkred transition-colors ml-4">Logout</a>
                     {% else %}
                     <a href="{{ url_for('login') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors ml-4 border-l border-gray-200 dark:border-gray-700 pl-4">Log in</a>
@@ -126,7 +126,7 @@
                     <a href="{{ url_for('admin') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Admin</a>
                     <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-airred hover:bg-gray-50 dark:hover:bg-gray-800">Logout</a>
                     {% elif session.get('user_logged_in') %}
-                    <div class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 dark:text-gray-400">{{ session.get('user_username') or session.get('user_email') }}</div>
+                    <a href="{{ url_for('profile') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800">{{ session.get('user_username') or session.get('user_email') }}</a>
                     <a href="{{ url_for('logout') }}" class="block px-3 py-2 rounded-md text-base font-medium text-airred hover:bg-gray-50 dark:hover:bg-gray-800">Logout</a>
                     {% else %}
                     <a href="{{ url_for('login') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Log in</a>
@@ -223,6 +223,63 @@
                 window.location.href = "{{ url_for('login') }}?verified=true";
             }
         });
+
+        // Commenting logic
+        function toggleComments(expId) {
+            const section = document.getElementById(`comments-section-${expId}`);
+            section.classList.toggle('hidden');
+            if (!section.classList.contains('hidden')) {
+                loadComments(expId);
+            }
+        }
+        
+        async function loadComments(expId) {
+            const list = document.getElementById(`comments-list-${expId}`);
+            list.innerHTML = '<div class="text-center text-xs text-gray-500 font-medium py-4">Loading comments...</div>';
+            try {
+                const res = await fetch(`/api/experience/${expId}/comments`);
+                const data = await res.json();
+                if (data.comments && data.comments.length > 0) {
+                    list.innerHTML = data.comments.map(c => `
+                        <div class="bg-gray-50 dark:bg-[#111] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">${c.name}</span>
+                                <span class="text-[10px] text-gray-500 font-medium">${new Date(c.created_at).toLocaleString()}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">${c.content}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<div class="text-center text-xs text-gray-500 font-medium py-4">No comments yet. Be the first to discuss!</div>';
+                }
+            } catch (err) {
+                list.innerHTML = '<div class="text-center text-xs text-red-500 font-medium py-4">Failed to load comments.</div>';
+            }
+        }
+        
+        async function postComment(e, expId) {
+            e.preventDefault();
+            const input = document.getElementById(`comment-input-${expId}`);
+            const content = input.value;
+            if (!content) return;
+            
+            try {
+                const res = await fetch(`/api/experience/${expId}/comment`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({content})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    loadComments(expId);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('Failed to post comment.');
+            }
+        }
     </script>
 </body>
 </html>

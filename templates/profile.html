@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile | StX Archive{% endblock %}
+
+{% block content %}
+<div class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+    <div>
+        <div class="inline-block px-4 py-1.5 mb-6 rounded-full border border-airred/30 bg-airred/5 text-airred text-xs font-bold tracking-widest uppercase shadow-sm">
+            User Dashboard
+        </div>
+        <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-2">My Profile</h1>
+        <p class="text-gray-600 dark:text-gray-400 font-medium">Manage your posts and view your impact on the community.</p>
+    </div>
+    <div class="flex flex-col gap-2">
+        <div class="text-sm font-bold text-gray-500 uppercase tracking-widest">Logged in as</div>
+        <div class="text-lg font-black text-airblack dark:text-white">{{ session.get('user_email') }}</div>
+        <div class="text-xs text-green-500 font-bold uppercase tracking-widest flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            Verified Account
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-black p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 text-airblack dark:text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">My Submissions</h3>
+        <span class="text-5xl font-black">{{ stats.total_posts }}</span>
+    </div>
+    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-950/20 p-6 rounded-2xl shadow-sm border border-blue-200 dark:border-blue-800/30 text-airblack dark:text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-blue-500 dark:text-blue-400 mb-2">Reactions Received</h3>
+        <span class="text-5xl font-black">{{ stats.total_reactions }}</span>
+    </div>
+    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-950/20 p-6 rounded-2xl shadow-sm border border-green-200 dark:border-green-800/30 text-airblack dark:text-white flex flex-col justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-green-500 dark:text-green-400 mb-2">Helpful Votes</h3>
+        <span class="text-5xl font-black">{{ stats.total_helpful }}</span>
+    </div>
+</div>
+
+<div class="space-y-8">
+    <div class="flex items-center mb-6">
+        <div class="h-8 w-1.5 bg-airred rounded-full mr-4"></div>
+        <h2 class="text-2xl font-extrabold text-airblack dark:text-white tracking-tight">Your Experiences</h2>
+    </div>
+
+    {% if experiences %}
+        <div class="space-y-6">
+            {% for exp in experiences %}
+                {% include 'partials/experience_card.html' %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white dark:bg-[#151515] rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-800">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-airblack dark:text-white mb-2">No Submissions Yet</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-8">You haven't posted any experiences. When you do, they will appear here.</p>
+            <a href="{{ url_for('experience') }}" class="px-6 py-3 bg-airred hover:bg-airdarkred text-white font-bold rounded-xl transition-colors shadow-lg">Share an Experience</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

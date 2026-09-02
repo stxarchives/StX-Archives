@@ -10,7 +10,7 @@
     {% if session.get('user_logged_in') and session.get('email_verified') %}
     <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 mb-20">
         <div class="p-8 sm:p-12">
-            <form action="{{ url_for('experience') }}" method="POST" class="space-y-8">
+            <form action="{{ url_for('experience') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 
                 <!-- Personal Info Section -->
                 <div class="space-y-6 pb-8 border-b border-gray-100 dark:border-gray-800">
@@ -64,6 +64,12 @@
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Detailed Account <span class="text-airred">*</span></label>
                         <textarea rows="6" name="details" placeholder="Provide factual, objective details. Please avoid personal attacks." required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium resize-none shadow-inner"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Attach Evidence (Optional)</label>
+                        <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-500 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airred/10 file:text-airred hover:file:bg-airred/20 transition-all cursor-pointer">
+                        <p class="text-xs text-gray-500 mt-2 font-medium">Upload a screenshot, photo, or document to support your claim.</p>
                     </div>
                 </div>
                 
