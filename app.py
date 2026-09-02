@@ -177,45 +177,51 @@ def teachers():
         subject = request.form.get('subject')
         description = request.form.get('description')
         
-        image_url = ""
+        image_urls = []
         
         def allowed_file(filename):
             return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'webp'}
             
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                
-                if supabase:
-                    try:
-                        file_bytes = file.read()
-                        # Upload to Supabase Storage
-                        res = supabase.storage.from_("uploads").upload(
-                            file=file_bytes,
-                            path=f"teachers/{filename}",
-                            file_options={"content-type": file.content_type}
-                        )
-                        # Get public URL
-                        public_url = supabase.storage.from_("uploads").get_public_url(f"teachers/{filename}")
-                        image_url = public_url
-                    except Exception as e:
-                        print(f"Error uploading to Supabase Storage: {e}")
-                        # Fallback to local save
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            for file in files:
+                if file and file.filename != '' and allowed_file(file.filename):
+                    import uuid
+                    # Add UUID to filename to avoid overwrites for multiple files
+                    filename = secure_filename(f"{uuid.uuid4().hex[:8]}_{file.filename}")
+                    
+                    if supabase:
+                        try:
+                            file_bytes = file.read()
+                            # Upload to Supabase Storage
+                            res = supabase.storage.from_("uploads").upload(
+                                file=file_bytes,
+                                path=f"teachers/{filename}",
+                                file_options={"content-type": file.content_type}
+                            )
+                            # Get public URL
+                            public_url = supabase.storage.from_("uploads").get_public_url(f"teachers/{filename}")
+                            image_urls.append(public_url)
+                        except Exception as e:
+                            print(f"Error uploading to Supabase Storage: {e}")
+                            # Fallback to local save
+                            filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                            file.seek(0)
+                            file.save(filepath)
+                            image_urls.append('/' + filepath)
+                    else:
                         filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
-                        file.seek(0)
                         file.save(filepath)
-                        image_url = '/' + filepath
-                else:
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
-                    file.save(filepath)
-                    image_url = '/' + filepath
+                        image_urls.append('/' + filepath)
+
+        primary_image = image_urls[0] if image_urls else "https://via.placeholder.com/800x600?text=No+Image"
 
         new_teacher = {
             "name": name,
             "subject": subject,
             "description": description,
-            "image_url": image_url or "https://via.placeholder.com/800x600?text=No+Image"
+            "image_url": primary_image,
+            "gallery_urls": image_urls
         }
         
         if supabase:

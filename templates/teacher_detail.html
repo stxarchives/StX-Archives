@@ -14,14 +14,24 @@
 
         <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-800">
             <div class="w-full h-96 bg-gray-200 dark:bg-gray-700 relative">
-                <img src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end">
+                <img id="main-teacher-img" src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top transition-opacity duration-300">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pointer-events-none">
                     <div class="p-8 w-full">
                         <p class="text-airred font-bold uppercase tracking-wider text-sm mb-2">{{ teacher.subject }}</p>
                         <h1 class="text-4xl font-extrabold text-white tracking-tight">{{ teacher.name }}</h1>
                     </div>
                 </div>
             </div>
+            
+            {% if teacher.gallery_urls and teacher.gallery_urls|length > 1 %}
+            <div class="flex gap-4 p-4 overflow-x-auto bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-gray-800 scrollbar-hide">
+                {% for url in teacher.gallery_urls %}
+                <button onclick="document.getElementById('main-teacher-img').src='{{ url }}'; this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('ring-2', 'ring-airred', 'ring-offset-2', 'dark:ring-offset-[#151515]')); this.classList.add('ring-2', 'ring-airred', 'ring-offset-2', 'dark:ring-offset-[#151515]')" class="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden focus:outline-none transition-all {% if loop.first %}ring-2 ring-airred ring-offset-2 dark:ring-offset-[#151515]{% else %}opacity-70 hover:opacity-100{% endif %}">
+                    <img src="{{ url }}" class="w-full h-full object-cover object-top pointer-events-none">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
             
             <div class="p-8 md:p-12 text-gray-800 dark:text-gray-200 leading-relaxed text-base prose dark:prose-invert max-w-none">
                 {{ teacher.description }}
