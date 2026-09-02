@@ -34,7 +34,7 @@
             {% endif %}
             
             <div class="p-8 md:p-12 text-gray-800 dark:text-gray-200 leading-relaxed text-base prose dark:prose-invert max-w-none">
-                {{ teacher.description }}
+                {{ teacher.description | safe }}
             </div>
             
             <div class="px-8 md:px-12 pb-8 border-t border-gray-100 dark:border-gray-800 pt-6">
