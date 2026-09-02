@@ -783,7 +783,7 @@ def experience():
             query = supabase.table('experiences').select('*')
             if category_filter:
                 query = query.eq('category', category_filter)
-            response = query.order('id', desc=True).execute()
+            response = query.order('id', desc=True).range(0, 9).execute()
             experiences = response.data
             
             # Process timestamps for rendering
@@ -802,14 +802,56 @@ def experience():
                     exp['can_edit'] = False
         except Exception as e:
             print(f"Supabase error: {e}")
-            experiences = mock_experiences
+            experiences = []
     else:
+        experiences = mock_experiences
         if category_filter:
-            experiences = [e for e in mock_experiences if e.get('category') == category_filter]
-        else:
-            experiences = mock_experiences
-
+            experiences = [e for e in experiences if e['category'] == category_filter]
+        experiences = experiences[:10]
+            
     return render_template('experience.html', experiences=experiences, current_category=category_filter, categories=CATEGORIES)
+
+@app.route('/api/experiences/page/<int:page_num>')
+def api_experiences_page(page_num):
+    limit = 10
+    start = (page_num - 1) * limit
+    end = start + limit - 1
+    category_filter = request.args.get('category')
+    
+    experiences = []
+    if supabase:
+        try:
+            query = supabase.table('experiences').select('*')
+            if category_filter:
+                query = query.eq('category', category_filter)
+            response = query.order('id', desc=True).range(start, end).execute()
+            experiences = response.data
+            
+            from datetime import datetime, timezone
+            for exp in experiences:
+                if exp.get('created_at'):
+                    try:
+                        dt = datetime.fromisoformat(exp['created_at'].replace('Z', '+00:00'))
+                        now = datetime.now(timezone.utc)
+                        diff = now - dt
+                        exp['can_edit'] = diff.total_seconds() <= 900
+                    except:
+                        exp['can_edit'] = False
+                else:
+                    exp['can_edit'] = False
+        except Exception as e:
+            print(f"Supabase error: {e}")
+    else:
+        all_exps = mock_experiences
+        if category_filter:
+            all_exps = [e for e in all_exps if e['category'] == category_filter]
+        experiences = all_exps[start:end+1]
+        
+    html = ""
+    for exp in experiences:
+        html += render_template('partials/experience_card.html', exp=exp)
+        
+    return jsonify({'html': html})
 
 @app.route('/edit_experience/<int:exp_id>', methods=['POST'])
 def edit_experience(exp_id):
