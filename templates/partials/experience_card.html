@@ -95,7 +95,7 @@
             <div class="text-center text-xs text-gray-500 font-medium py-4">Loading comments...</div>
         </div>
         
-        {% if session.get('user_logged_in') %}
+        {% if session.get('user_logged_in') or session.get('admin_logged_in') %}
         <form onsubmit="postComment(event, {{ exp.id }})" class="flex gap-2">
             <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
             <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>

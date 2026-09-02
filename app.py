@@ -1630,15 +1630,19 @@ def get_comments(exp_id):
 
 @app.route('/api/experience/<int:exp_id>/comment', methods=['POST'])
 def post_comment(exp_id):
-    if 'user_logged_in' not in session:
+    if 'user_logged_in' not in session and 'admin_logged_in' not in session:
         return jsonify({'error': 'Unauthorized'}), 403
         
     content = request.json.get('content')
     if not content:
         return jsonify({'error': 'Content is required'}), 400
         
-    name = session.get('user_username') or session.get('user_email', 'Anonymous')
-    email = session.get('user_email')
+    if session.get('admin_logged_in'):
+        name = 'Admin'
+        email = 'admin@stxarchive.local'
+    else:
+        name = session.get('user_username') or session.get('user_email', 'Anonymous')
+        email = session.get('user_email')
     
     from datetime import datetime, timezone
     now_iso = datetime.now(timezone.utc).isoformat()
