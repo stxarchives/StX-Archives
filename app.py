@@ -4,6 +4,32 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from functools import wraps
 from werkzeug.utils import secure_filename
+import io
+from PIL import Image
+
+def optimize_image(file_bytes, max_width=1024, quality=85):
+    """Resizes and compresses an image if it's too large."""
+    try:
+        img = Image.open(io.BytesIO(file_bytes))
+        
+        # Convert to RGB if it's RGBA or P (to save as JPEG)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        # Resize if width > max_width
+        if img.width > max_width:
+            ratio = max_width / img.width
+            new_height = int(img.height * ratio)
+            img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+        # Save to a bytes buffer
+        output_buffer = io.BytesIO()
+        img.save(output_buffer, format="JPEG", quality=quality, optimize=True)
+        return output_buffer.getvalue(), "image/jpeg", ".jpg"
+    except Exception as e:
+        print(f"Image optimization failed: {e}")
+        return file_bytes, None, None
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -193,11 +219,21 @@ def teachers():
                     if supabase:
                         try:
                             file_bytes = file.read()
+                            
+                            # Only optimize if it's an image
+                            content_type = file.content_type
+                            if file.filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'webp'}:
+                                file_bytes, new_content_type, ext = optimize_image(file_bytes)
+                                if new_content_type:
+                                    content_type = new_content_type
+                                    # replace extension in filename
+                                    filename = filename.rsplit('.', 1)[0] + ext
+                            
                             # Upload to Supabase Storage
                             res = supabase.storage.from_("uploads").upload(
                                 file=file_bytes,
                                 path=f"teachers/{filename}",
-                                file_options={"content-type": file.content_type}
+                                file_options={"content-type": content_type}
                             )
                             # Get public URL
                             public_url = supabase.storage.from_("uploads").get_public_url(f"teachers/{filename}")
