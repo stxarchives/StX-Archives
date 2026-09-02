@@ -732,11 +732,11 @@ for teacher in mock_teachers:
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
     if request.method == 'POST':
-        if 'user_logged_in' not in session:
+        if 'user_logged_in' not in session and 'admin_logged_in' not in session:
             flash('You must be logged in to post an experience.', 'error')
             return redirect(url_for('login'))
         
-        if not session.get('email_verified'):
+        if 'admin_logged_in' not in session and not session.get('email_verified'):
             flash('You must verify your email address before posting.', 'error')
             return redirect(url_for('experience'))
             
