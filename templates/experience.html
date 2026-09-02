@@ -2,112 +2,8 @@
 {% block title %}Submit Experience | StX Archive{% endblock %}
 {% block content %}
 <div class="max-w-3xl mx-auto mb-16 px-6">
-    <div class="text-center mb-12">
-        <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-4">Share Your Experience</h1>
-        <p class="text-lg text-gray-600 dark:text-gray-400 font-medium">Submit a firsthand account or testimony related to school policies or incidents.</p>
-    </div>
-
-    {% if (session.get('user_logged_in') and session.get('email_verified')) or session.get('admin_logged_in') %}
-    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 mb-20">
-        <div class="p-8 sm:p-12">
-            <form action="{{ url_for('experience') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
-                
-                <!-- Personal Info Section -->
-                <div class="space-y-6 pb-8 border-b border-gray-100 dark:border-gray-800">
-                    <h3 class="text-xl font-black text-airblack dark:text-white">1. Submitter Identity</h3>
-                    <p class="text-sm text-gray-500 font-medium">Your identity is kept strictly confidential by our moderators. You have full control over whether your name appears publicly.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name</label>
-                            <input type="text" name="name" placeholder="e.g. John Doe" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Contact Email <span class="text-airred">*</span></label>
-                            <input type="email" name="email" value="{{ session.get('user_email', '') }}" required readonly class="w-full bg-gray-100 dark:bg-[#222] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner cursor-not-allowed">
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start bg-gray-50 dark:bg-[#111] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-                        <div class="flex items-center h-5">
-                            <input id="anonymous" name="is_anonymous" type="checkbox" checked class="w-5 h-5 bg-white border-gray-300 rounded text-airred focus:ring-airred dark:focus:ring-airred dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
-                        </div>
-                        <label for="anonymous" class="ml-3 text-sm font-bold text-gray-900 dark:text-white cursor-pointer">Post Anonymously
-                            <p class="text-xs text-gray-500 font-medium mt-1">If checked, your name will NOT be displayed when this experience is published.</p>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Incident Details Section -->
-                <div class="space-y-6">
-                    <h3 class="text-xl font-black text-airblack dark:text-white">2. Incident Details</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Category</label>
-                            <select name="category" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium shadow-inner">
-                                {% for cat in categories %}
-                                <option value="{{ cat }}">{{ cat }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Date of Incident</label>
-                            <input type="date" name="date" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Title / Subject <span class="text-airred">*</span></label>
-                        <input type="text" name="title" placeholder="Brief summary of the issue..." required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium shadow-inner">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Detailed Account <span class="text-airred">*</span></label>
-                        <textarea rows="6" name="details" placeholder="Provide factual, objective details. Please avoid personal attacks." required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium resize-none shadow-inner"></textarea>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Attach Evidence (Optional)</label>
-                        <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-500 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airred/10 file:text-airred hover:file:bg-airred/20 transition-all cursor-pointer">
-                        <p class="text-xs text-gray-500 mt-2 font-medium">Upload a screenshot, photo, or document to support your claim.</p>
-                    </div>
-                </div>
-                
-                <div class="pt-6 border-t border-gray-100 dark:border-gray-800">
-                    <button type="submit" class="w-full bg-airred hover:bg-airdarkred text-white rounded-xl px-8 py-5 font-black tracking-widest uppercase text-sm transition-all shadow-lg hover:shadow-airred/30">
-                        Submit Experience for Review
-                    </button>
-                    <p class="text-center text-xs text-gray-500 mt-4 font-medium flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        All submissions are securely reviewed by our moderation team before publication.
-                    </p>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% elif session.get('user_logged_in') %}
-    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl p-12 text-center border border-gray-100 dark:border-gray-800 mb-20">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 text-yellow-500 mb-6">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-        </div>
-        <h3 class="text-2xl font-black text-airblack dark:text-white mb-4">Verify Your Email</h3>
-        <p class="text-gray-500 dark:text-gray-400 font-medium mb-8 max-w-md mx-auto">Please verify your email address to post experiences. If you haven't received a link, check your spam folder.</p>
-    </div>
-    {% else %}
-    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl p-12 text-center border border-gray-100 dark:border-gray-800 mb-20">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-airred/10 text-airred mb-6">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-        </div>
-        <h3 class="text-2xl font-black text-airblack dark:text-white mb-4">Join to Share Your Experience</h3>
-        <p class="text-gray-500 dark:text-gray-400 font-medium mb-8 max-w-md mx-auto">You must be logged in to post an experience. We use accounts to prevent spam, but your posts will remain anonymous by default.</p>
-        <div class="flex items-center justify-center space-x-4">
-            <a href="{{ url_for('login') }}" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-airblack dark:text-white font-bold rounded-xl transition-colors">Log In</a>
-            <a href="{{ url_for('signup') }}" class="px-6 py-3 bg-airred hover:bg-airdarkred text-white font-bold rounded-xl shadow-lg hover:shadow-airred/30 transition-all">Sign Up</a>
-        </div>
-    </div>
-    {% endif %}
     
-    <div class="border-t border-gray-200 dark:border-gray-800 pt-12">
+    <div class="pt-4">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-3xl font-black text-airblack dark:text-white tracking-tight">
                 {% if current_category %}
@@ -144,6 +40,114 @@
         <div id="end-message" class="hidden text-center text-gray-600 py-10 font-bold uppercase tracking-widest text-xs">
             No more experiences to load
         </div>
+    </div>
+
+    <!-- Share Your Experience Form (Moved to Bottom) -->
+    <div class="mt-20 border-t border-gray-200 dark:border-gray-800 pt-16">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-4">Share Your Experience</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400 font-medium">Submit a firsthand account or testimony related to school policies or incidents.</p>
+        </div>
+
+        {% if (session.get('user_logged_in') and session.get('email_verified')) or session.get('admin_logged_in') %}
+        <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 mb-20">
+            <div class="p-8 sm:p-12">
+                <form action="{{ url_for('experience') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                    
+                    <!-- Personal Info Section -->
+                    <div class="space-y-6 pb-8 border-b border-gray-100 dark:border-gray-800">
+                        <h3 class="text-xl font-black text-airblack dark:text-white">1. Submitter Identity</h3>
+                        <p class="text-sm text-gray-500 font-medium">Your identity is kept strictly confidential by our moderators. You have full control over whether your name appears publicly.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Full Name</label>
+                                <input type="text" name="name" placeholder="e.g. John Doe" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Contact Email <span class="text-airred">*</span></label>
+                                <input type="email" name="email" value="{{ session.get('user_email', '') }}" required readonly class="w-full bg-gray-100 dark:bg-[#222] border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner cursor-not-allowed">
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start bg-gray-50 dark:bg-[#111] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                            <div class="flex items-center h-5">
+                                <input id="anonymous" name="is_anonymous" type="checkbox" checked class="w-5 h-5 bg-white border-gray-300 rounded text-airred focus:ring-airred dark:focus:ring-airred dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer">
+                            </div>
+                            <label for="anonymous" class="ml-3 text-sm font-bold text-gray-900 dark:text-white cursor-pointer">Post Anonymously
+                                <p class="text-xs text-gray-500 font-medium mt-1">If checked, your name will NOT be displayed when this experience is published.</p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Incident Details Section -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-black text-airblack dark:text-white">2. Incident Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Category</label>
+                                <select name="category" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium shadow-inner">
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}">{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Date of Incident</label>
+                                <input type="date" name="date" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium text-sm shadow-inner">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Title / Subject <span class="text-airred">*</span></label>
+                            <input type="text" name="title" placeholder="Brief summary of the issue..." required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium shadow-inner">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Detailed Account <span class="text-airred">*</span></label>
+                            <textarea rows="6" name="details" placeholder="Provide factual, objective details. Please avoid personal attacks." required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-4 transition-colors font-medium resize-none shadow-inner"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">Attach Evidence (Optional)</label>
+                            <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-gray-500 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airred/10 file:text-airred hover:file:bg-airred/20 transition-all cursor-pointer">
+                            <p class="text-xs text-gray-500 mt-2 font-medium">Upload a screenshot, photo, or document to support your claim.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-6 border-t border-gray-100 dark:border-gray-800">
+                        <button type="submit" class="w-full bg-airred hover:bg-airdarkred text-white rounded-xl px-8 py-5 font-black tracking-widest uppercase text-sm transition-all shadow-lg hover:shadow-airred/30">
+                            Submit Experience for Review
+                        </button>
+                        <p class="text-center text-xs text-gray-500 mt-4 font-medium flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            All submissions are securely reviewed by our moderation team before publication.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% elif session.get('user_logged_in') %}
+        <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl p-12 text-center border border-gray-100 dark:border-gray-800 mb-20">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 text-yellow-500 mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-airblack dark:text-white mb-4">Verify Your Email</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-8 max-w-md mx-auto">Please verify your email address to post experiences. If you haven't received a link, check your spam folder.</p>
+        </div>
+        {% else %}
+        <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl p-12 text-center border border-gray-100 dark:border-gray-800 mb-20">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-airred/10 text-airred mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-black text-airblack dark:text-white mb-4">Join to Share Your Experience</h3>
+            <p class="text-gray-500 dark:text-gray-400 font-medium mb-8 max-w-md mx-auto">You must be logged in to post an experience. We use accounts to prevent spam, but your posts will remain anonymous by default.</p>
+            <div class="flex items-center justify-center space-x-4">
+                <a href="{{ url_for('login') }}" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-airblack dark:text-white font-bold rounded-xl transition-colors">Log In</a>
+                <a href="{{ url_for('signup') }}" class="px-6 py-3 bg-airred hover:bg-airdarkred text-white font-bold rounded-xl shadow-lg hover:shadow-airred/30 transition-all">Sign Up</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
