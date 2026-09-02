@@ -37,12 +37,9 @@
     </div>
 </div>
 
-<!-- Forms & Tools Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-    
-    <!-- Column 1: Evidence Management -->
-    <div class="space-y-8">
-        <!-- Add Evidence Form -->
+<!-- Forms Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
+    <!-- Add Evidence Form -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Upload Evidence</h3>
             <form action="{{ url_for('upload_evidence') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -65,35 +62,7 @@
                 <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-blue-600 hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Upload Evidence</button>
             </form>
         </div>
-        
-        <!-- Evidence Queue -->
-        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-            <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#111]">
-                <h4 class="text-sm font-bold uppercase tracking-widest text-gray-500">Evidence Queue</h4>
-            </div>
-            <ul class="divide-y divide-gray-100 dark:divide-gray-800 max-h-64 overflow-y-auto">
-                {% for ev in evidence %}
-                <li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
-                    <div>
-                        <p class="font-bold text-sm text-airblack dark:text-white">{{ ev.title }}</p>
-                        <p class="text-xs text-gray-500">{{ ev.date }}</p>
-                    </div>
-                    <form action="{{ url_for('delete_evidence', ev_id=ev.id) }}" method="POST" onsubmit="return confirm('Delete this evidence?');">
-                        <button type="submit" class="text-red-500 hover:text-red-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </form>
-                </li>
-                {% else %}
-                <li class="p-4 text-center text-xs text-gray-500 font-bold uppercase tracking-widest">No Evidence</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-    
-    <!-- Column 2: Timeline Management -->
-    <div class="space-y-8">
-        <!-- Add Timeline Event Form -->
+    <!-- Add Timeline Event Form -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Add Timeline Event</h3>
             <form action="{{ url_for('add_timeline') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -130,35 +99,7 @@
                 <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-purple-600 hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Add Timeline Event</button>
             </form>
         </div>
-        
-        <!-- Timeline Queue -->
-        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-            <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#111]">
-                <h4 class="text-sm font-bold uppercase tracking-widest text-gray-500">Timeline Queue</h4>
-            </div>
-            <ul class="divide-y divide-gray-100 dark:divide-gray-800 max-h-64 overflow-y-auto">
-                {% for inc in incidents %}
-                <li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
-                    <div>
-                        <p class="font-bold text-sm text-airblack dark:text-white">{{ inc.title }}</p>
-                        <p class="text-xs text-gray-500">{{ inc.date }}</p>
-                    </div>
-                    <form action="{{ url_for('delete_timeline', inc_id=inc.id) }}" method="POST" onsubmit="return confirm('Delete this event?');">
-                        <button type="submit" class="text-red-500 hover:text-red-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </form>
-                </li>
-                {% else %}
-                <li class="p-4 text-center text-xs text-gray-500 font-bold uppercase tracking-widest">No Events</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-
-    <!-- Column 3: Post & Security -->
-    <div class="space-y-8">
-        <!-- Force Post Experience -->
+    <!-- Force Post Experience -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Force Post Experience</h3>
             <form action="{{ url_for('admin_add_experience') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -181,7 +122,57 @@
                 <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-airred hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Force Post</button>
             </form>
         </div>
+</div>
 
+<!-- Queues & Security Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 items-start">
+    <!-- Evidence Queue -->
+        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#111]">
+                <h4 class="text-sm font-bold uppercase tracking-widest text-gray-500">Evidence Queue</h4>
+            </div>
+            <ul class="divide-y divide-gray-100 dark:divide-gray-800 max-h-64 overflow-y-auto">
+                {% for ev in evidence %}
+                <li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
+                    <div>
+                        <p class="font-bold text-sm text-airblack dark:text-white">{{ ev.title }}</p>
+                        <p class="text-xs text-gray-500">{{ ev.date }}</p>
+                    </div>
+                    <form action="{{ url_for('delete_evidence', ev_id=ev.id) }}" method="POST" onsubmit="return confirm('Delete this evidence?');">
+                        <button type="submit" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="p-4 text-center text-xs text-gray-500 font-bold uppercase tracking-widest">No Evidence</li>
+                {% endfor %}
+            </ul>
+        </div>
+    <!-- Timeline Queue -->
+        <div class="bg-white dark:bg-[#151515] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#111]">
+                <h4 class="text-sm font-bold uppercase tracking-widest text-gray-500">Timeline Queue</h4>
+            </div>
+            <ul class="divide-y divide-gray-100 dark:divide-gray-800 max-h-64 overflow-y-auto">
+                {% for inc in incidents %}
+                <li class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#1a1a1a]">
+                    <div>
+                        <p class="font-bold text-sm text-airblack dark:text-white">{{ inc.title }}</p>
+                        <p class="text-xs text-gray-500">{{ inc.date }}</p>
+                    </div>
+                    <form action="{{ url_for('delete_timeline', inc_id=inc.id) }}" method="POST" onsubmit="return confirm('Delete this event?');">
+                        <button type="submit" class="text-red-500 hover:text-red-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </form>
+                </li>
+                {% else %}
+                <li class="p-4 text-center text-xs text-gray-500 font-bold uppercase tracking-widest">No Events</li>
+                {% endfor %}
+            </ul>
+        </div>
+    <div class="space-y-8">
         <!-- Security -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Security</h3>
@@ -224,7 +215,9 @@
             </form>
         </div>
     </div>
+    </div>
 </div>
+
 
 <!-- Teacher Management Section -->
 <div class="mb-12">
