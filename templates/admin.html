@@ -290,8 +290,12 @@
     .note-editor .note-modal-content {
         background-color: #151515 !important;
         border: 1px solid #1f2937 !important;
-        color: white !important;
+        color: #e5e7eb !important;
         border-radius: 1rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+    }
+    .note-editor .note-modal-content * {
+        color: #e5e7eb;
     }
     .note-editor .note-modal-header {
         border-bottom: 1px solid #1f2937 !important;
@@ -299,19 +303,48 @@
     .note-editor .note-modal-footer {
         border-top: 1px solid #1f2937 !important;
     }
-    .note-editor .note-form-label {
-        color: #9ca3af !important;
+    .note-editor .note-modal-title {
+        color: white !important;
+        font-weight: bold;
     }
-    .note-editor .note-input {
+    .note-editor .note-modal-content label {
+        color: #9ca3af !important;
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+    .note-editor .note-modal-content input[type="text"],
+    .note-editor .note-modal-content input[type="url"],
+    .note-editor .note-modal-content input.note-input {
         background-color: #111 !important;
-        border: 1px solid #1f2937 !important;
+        border: 1px solid #374151 !important;
         color: white !important;
         border-radius: 0.5rem !important;
         padding: 8px 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-bottom: 16px !important;
     }
-    .note-editor .note-input:focus {
+    .note-editor .note-modal-content input:focus {
         border-color: #dc2626 !important;
         outline: none !important;
+    }
+    .note-editor .note-modal-content input[type="checkbox"] {
+        accent-color: #dc2626 !important;
+        margin-right: 8px !important;
+        width: auto !important;
+        margin-bottom: 0 !important;
+    }
+    .note-editor .note-modal-content .note-btn {
+        background-color: #dc2626 !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 0.5rem !important;
+        font-weight: bold !important;
+    }
+    .note-editor .note-modal-content .note-btn:hover {
+        background-color: #b91c1c !important;
     }
     .note-btn-group .note-btn {
         margin-right: 4px !important;
