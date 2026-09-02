@@ -1099,6 +1099,15 @@ def admin_add_experience():
     category = request.form.get('category')
     details = request.form.get('details')
     
+    image_url = ''
+    image_file = request.files.get('image')
+    if image_file and image_file.filename != '':
+        filename = secure_filename(image_file.filename)
+        upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+        os.makedirs(upload_folder, exist_ok=True)
+        image_file.save(os.path.join(upload_folder, filename))
+        image_url = f"/static/uploads/experiences/{filename}"
+    
     from datetime import datetime
     date_str = datetime.now().strftime("%Y-%m-%d")
     
@@ -1110,6 +1119,7 @@ def admin_add_experience():
         "date": date_str,
         "title": title,
         "details": details,
+        "image_url": image_url,
         "is_verified": True
     }
     
@@ -1133,8 +1143,16 @@ def upload_evidence():
     if request.method == 'POST':
         title = request.form.get('title')
         category = request.form.get('category')
-        image_url = request.form.get('image_url', '')
         description = request.form.get('description')
+        
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            filename = secure_filename(image_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'evidence')
+            os.makedirs(upload_folder, exist_ok=True)
+            image_file.save(os.path.join(upload_folder, filename))
+            image_url = f"/static/uploads/evidence/{filename}"
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %d, %Y")
@@ -1184,7 +1202,17 @@ def add_timeline():
     if request.method == 'POST':
         title = request.form.get('title')
         status = request.form.get('status')
+        impact = request.form.get('impact', 'Medium')
         description = request.form.get('description')
+        
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            filename = secure_filename(image_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'incidents')
+            os.makedirs(upload_folder, exist_ok=True)
+            image_file.save(os.path.join(upload_folder, filename))
+            image_url = f"/static/uploads/incidents/{filename}"
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %Y")
@@ -1192,6 +1220,8 @@ def add_timeline():
         new_timeline = {
             "title": title,
             "status": status,
+            "impact": impact,
+            "image_url": image_url,
             "description": description,
             "date": date_str
         }
