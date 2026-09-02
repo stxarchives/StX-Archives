@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="view-transition" content="same-origin">
     <title>{% block title %}StX Archive{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -19,6 +20,15 @@
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(15px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     }
                 }
             }
@@ -135,7 +145,7 @@
 
     <!-- Main Content -->
     <main class="pt-28 pb-16 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 opacity-0 animate-fade-in-up">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
