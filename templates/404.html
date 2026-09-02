@@ -28,7 +28,7 @@
                 </a>
 
                 {% for page in dynamic_pages %}
-                <a href="{{ url_for('view_page', page_id=page.id) }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
+                <a href="{{ url_for('dynamic_page', slug=page.id) }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
                     <span class="text-gray-900 dark:text-white font-medium group-hover:text-airred transition-colors">{{ page.title }}</span>
                 </a>
                 {% endfor %}
