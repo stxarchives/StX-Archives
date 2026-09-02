@@ -233,6 +233,87 @@
 </div>
 
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    /* Professional Dark Theme for Summernote */
+    .note-editor.note-frame {
+        border: 1px solid #1f2937 !important; /* dark-gray-800 */
+        border-radius: 0.75rem !important; /* rounded-xl */
+        overflow: hidden;
+        background-color: #151515 !important;
+    }
+    .note-editor.note-frame .note-toolbar {
+        background-color: #111 !important; /* dark-gray-900 */
+        border-bottom: 1px solid #1f2937 !important;
+        padding: 12px 16px !important;
+    }
+    .note-editor.note-frame .note-statusbar {
+        background-color: #111 !important;
+        border-top: 1px solid #1f2937 !important;
+    }
+    .note-editor.note-frame .note-editing-area .note-editable {
+        background-color: #151515 !important;
+        color: #fff !important;
+        padding: 20px !important;
+    }
+    .note-editor .note-toolbar .note-btn {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        color: #9ca3af !important; /* text-gray-400 */
+        border-radius: 0.5rem !important;
+        padding: 6px 10px !important;
+        transition: all 0.2s ease !important;
+    }
+    .note-editor .note-toolbar .note-btn:hover {
+        background-color: #222 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-toolbar .note-btn.active {
+        background-color: #dc2626 !important; /* airred */
+        color: #fff !important;
+    }
+    .note-editor .note-dropdown-menu {
+        background-color: #111 !important;
+        border: 1px solid #1f2937 !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+    }
+    .note-editor .note-dropdown-menu .dropdown-item {
+        color: #d1d5db !important; /* text-gray-300 */
+    }
+    .note-editor .note-dropdown-menu .dropdown-item:hover {
+        background-color: #222 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-modal-content {
+        background-color: #151515 !important;
+        border: 1px solid #1f2937 !important;
+        color: white !important;
+        border-radius: 1rem !important;
+    }
+    .note-editor .note-modal-header {
+        border-bottom: 1px solid #1f2937 !important;
+    }
+    .note-editor .note-modal-footer {
+        border-top: 1px solid #1f2937 !important;
+    }
+    .note-editor .note-form-label {
+        color: #9ca3af !important;
+    }
+    .note-editor .note-input {
+        background-color: #111 !important;
+        border: 1px solid #1f2937 !important;
+        color: white !important;
+        border-radius: 0.5rem !important;
+        padding: 8px 12px !important;
+    }
+    .note-editor .note-input:focus {
+        border-color: #dc2626 !important;
+        outline: none !important;
+    }
+    .note-btn-group .note-btn {
+        margin-right: 4px !important;
+    }
+</style>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
