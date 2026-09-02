@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found | StX Archive{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-2xl w-full space-y-8 text-center">
+        <div>
+            <h1 class="text-9xl font-extrabold text-airred tracking-tighter">404</h1>
+            <h2 class="mt-4 text-3xl font-bold text-gray-900 dark:text-white tracking-tight sm:text-4xl">Page not found</h2>
+            <p class="mt-4 text-lg text-gray-500 dark:text-gray-400">Sorry, we couldn't find the page you're looking for. It might have been moved or deleted.</p>
+        </div>
+        
+        <div class="mt-8 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-800 p-8">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">You might be looking for:</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <a href="{{ url_for('home') }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
+                    <span class="text-gray-900 dark:text-white font-medium group-hover:text-airred transition-colors">Home</span>
+                </a>
+                
+                <a href="{{ url_for('teachers') }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
+                    <span class="text-gray-900 dark:text-white font-medium group-hover:text-airred transition-colors">Teachers</span>
+                </a>
+                
+                <a href="{{ url_for('experience') }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
+                    <span class="text-gray-900 dark:text-white font-medium group-hover:text-airred transition-colors">Experiences</span>
+                </a>
+
+                {% for page in dynamic_pages %}
+                <a href="{{ url_for('view_page', page_id=page.id) }}" class="group relative px-4 py-4 flex flex-col items-center justify-center text-center bg-gray-50 dark:bg-[#151515] hover:bg-airred/10 dark:hover:bg-airred/10 rounded-xl transition-all border border-gray-100 dark:border-gray-800 hover:border-airred">
+                    <span class="text-gray-900 dark:text-white font-medium group-hover:text-airred transition-colors">{{ page.title }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="pt-6">
+            <a href="{{ url_for('home') }}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-airred hover:bg-airdarkred focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airred transition-colors">
+                <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Go back home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
