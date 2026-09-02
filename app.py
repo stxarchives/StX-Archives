@@ -78,6 +78,30 @@ CATEGORIES = [
 ]
 
 @app.route('/')
+
+@app.route('/p/<slug>')
+def dynamic_page(slug):
+    content = ""
+    title = slug.replace('-', ' ').title()
+    
+    if supabase:
+        try:
+            res = supabase.table('pages').select('content').eq('id', slug).execute()
+            if res.data:
+                content = res.data[0]['content']
+        except:
+            pass
+            
+    if not content and slug in mock_pages:
+        content = mock_pages[slug]
+        
+    if not content:
+        content = '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Page Not Found or Pending Verification ]</div>'
+        
+    return render_template('dynamic_page.html', title=title, content=content, slug=slug)
+
+
+@app.route('/')
 def index():
     category_counts = {c: 0 for c in CATEGORIES}
     
@@ -588,6 +612,259 @@ mock_users = []
 mock_evidence = []
 mock_timeline = []
 
+mock_pages = {
+    'hall-of-shame': r'''<div class="relative pt-24 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <h1 class="text-5xl md:text-7xl font-black text-airblack dark:text-white tracking-tight mb-8">Hall of <span class="text-airred">Shame</span></h1>
+    <p class="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-400 font-medium">Administrative failures that remain completely unaddressed.</p>
+</div>
+
+<div class="max-w-6xl mx-auto px-6 mb-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+    
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-gray-800 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded border border-gray-700">Not Verified Yet</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Book Prices Are Insane & Photo Double-Charging</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"I went to buy the required books and they are priced like gold. To make it worse, they charged ₹510 for a diary, a useless portfolio, and 3 passport size photos. But then, they had the nerve to ask us for another ₹30 for those exact same 3 photographs again!"</p>
+        <button onclick="openShameFullScreen('Book Prices Are Insane & Photo Double-Charging', 'I went to buy the required books and they are priced like gold. To make it worse, they charged ₹510 for a diary, a useless portfolio, and 3 passport size photos. But then, they had the nerve to ask us for another ₹30 for those exact same 3 photographs again!', 'Not Verified Yet', 'border-gray-700 text-gray-400 bg-gray-800')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-green-900/30 text-green-500 text-[10px] font-black uppercase tracking-widest rounded border border-green-800">Verified</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Paying to become a laborer</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"They took ₹630 from me to become a student council member. My duties? Moving benches and doing chores for the school administration. It's paid child labor."</p>
+        <button onclick="openShameFullScreen('Paying to become a laborer', 'They took ₹630 from me to become a student council member. My duties? Moving benches and doing chores for the school administration. It\'s paid child labor.', 'Verified', 'border-green-800 text-green-500 bg-green-900/30')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-green-900/30 text-green-500 text-[10px] font-black uppercase tracking-widest rounded border border-green-800">Verified</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Broken Infrastructure Everywhere</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"The school is falling apart. There are broken washrooms, broken windows in almost every single classroom, damaged benches, and the drinking water quality is extremely bad."</p>
+        <button onclick="openShameFullScreen('Broken Infrastructure Everywhere', 'The school is falling apart. There are broken washrooms, broken windows in almost every single classroom, damaged benches, and the drinking water quality is extremely bad.', 'Verified', 'border-green-800 text-green-500 bg-green-900/30')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-green-900/30 text-green-500 text-[10px] font-black uppercase tracking-widest rounded border border-green-800">Verified</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Forced Religious Practices & Discrimination</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"The school administrators are forcing students to sing and dance to Christian songs, practically forcing a change of religion. Additionally, there is blatant religious discrimination regarding holidays; they give holidays for Muslim and Christian celebrations but deny them for Hindu celebrations, such as refusing to give a holiday on Hanuman Jayanti."</p>
+        <button onclick="openShameFullScreen('Forced Religious Practices & Discrimination', 'The school administrators are forcing students to sing and dance to Christian songs, practically forcing a change of religion. Additionally, there is blatant religious discrimination regarding holidays; they give holidays for Muslim and Christian celebrations but deny them for Hindu celebrations, such as refusing to give a holiday on Hanuman Jayanti.', 'Verified', 'border-green-800 text-green-500 bg-green-900/30')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-gray-800 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded border border-gray-700">Not Verified Yet</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Extortion for Farewell & Books</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"They collect farewell contributions from all students from Class 9 to Class 12, taking over ₹1500+ and increasing the price as the class level gets higher. Despite this massive collection, they then forced students to dance at the farewell themselves, and the food provided was of terrible quality. Why take so much money if the students have to do everything themselves? Furthermore, the required Physical Education book is still not available in the school."</p>
+        <button onclick="openShameFullScreen('Extortion for Farewell & Books', 'They collect farewell contributions from all students from Class 9 to Class 12, taking over ₹1500+ and increasing the price as the class level gets higher. Despite this massive collection, they then forced students to dance at the farewell themselves, and the food provided was of terrible quality. Why take so much money if the students have to do everything themselves? Furthermore, the required Physical Education book is still not available in the school.', 'Not Verified Yet', 'border-gray-700 text-gray-400 bg-gray-800')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+    <div class="bg-[#111] border border-gray-800 p-10 flex flex-col items-center text-center hover:border-airred transition-colors group shadow-lg h-full">
+        <div class="text-airred mb-6"><svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+        <div class="flex items-center gap-2 mb-4">
+            <span class="px-2 py-1 bg-green-900/30 text-green-500 text-[10px] font-black uppercase tracking-widest rounded border border-green-800">Verified</span>
+        </div>
+        <h3 class="text-2xl font-black text-white mb-4">Unhealthy Canteen Food</h3>
+        <p class="text-gray-400 font-medium leading-relaxed italic line-clamp-4 mb-6">"Despite being a school that should promote health, the canteen itself sells unhealthy junk food to students."</p>
+        <button onclick="openShameFullScreen('Unhealthy Canteen Food', 'Despite being a school that should promote health, the canteen itself sells unhealthy junk food to students.', 'Verified', 'border-green-800 text-green-500 bg-green-900/30')" class="mt-auto text-airred hover:text-white font-bold text-sm tracking-wide uppercase transition-colors flex items-center gap-2">View More <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></button>
+    </div>
+
+</div>
+
+<script>
+function openShameFullScreen(title, text, statusText, statusColor) {
+    const newWindow = window.open('', '_blank');
+    if (!newWindow) {
+        alert("Pop-up blocked! Please allow pop-ups for this site to view the full screen details.");
+        return;
+    }
+    const html = `
+        <!DOCTYPE html>
+        <html class="dark">
+        <head>
+            <title>${title} - Hall of Shame</title>
+            <script src="https://cdn.tailwindcss.com"><\/script>
+        </head>
+        <body class="bg-[#0a0a0a] text-white min-h-screen flex flex-col items-center justify-center p-8 text-center font-sans">
+            <div class="max-w-5xl mx-auto w-full">
+                <div class="mb-8 inline-block px-4 py-2 border rounded-md text-sm font-black uppercase tracking-widest ${statusColor}">
+                    ${statusText}
+                </div>
+                <h1 class="text-5xl md:text-7xl font-black mb-10 text-white tracking-tight">${title}</h1>
+                <p class="text-2xl md:text-4xl text-gray-400 leading-relaxed italic font-medium">"${text}"</p>
+                <div class="mt-16">
+                    <button onclick="window.close()" class="px-10 py-4 bg-white text-black font-extrabold text-lg tracking-wide rounded-full hover:bg-gray-200 transition-colors">Go Back / Close</button>
+                </div>
+            </div>
+        </body>
+        </html>
+    `;
+    newWindow.document.write(html);
+    newWindow.document.close();
+}
+</script>''',
+    'fee-scam': r'''<div class="relative pt-24 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <div class="inline-block px-5 py-1 mb-8 rounded-full border border-airred/30 bg-transparent text-airred text-[11px] font-black tracking-[0.2em] uppercase">Financials</div>
+    <h1 class="text-5xl md:text-6xl font-black text-airblack dark:text-white tracking-tight mb-8">The Fee <span class="text-airred">Scam</span></h1>
+    <p class="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-400 font-medium">Breaking down the unjustified costs and mandatory extortion.</p>
+</div>
+
+<div class="max-w-5xl mx-auto px-6 mb-20 space-y-8">
+    <div class="bg-[#151515] border border-gray-800 rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 text-9xl font-black text-gray-800/30 select-none">₹</div>
+        <h2 class="text-3xl font-black text-white mb-6">4th Standard: ₹52,000</h2>
+        <p class="text-xl text-gray-400 mb-8 font-medium">A staggering fee structure for elementary education, completely decoupled from the actual facilities provided (unpainted walls, dead computers).</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred">
+                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">Council Child Labor</h4>
+                <p class="text-gray-300 font-medium">They take ₹630 just to make a student a "council member". The reward? Students act as free labor, moving benches and doing school chores. You pay them to do their manual labor.</p>
+            </div>
+            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred">
+                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">Gold-Plated Books</h4>
+                <p class="text-gray-300 font-medium">Book prices are exorbitantly inflated, priced like buying gold. Furthermore, the school diary is not included and must be purchased separately.</p>
+            </div>
+            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred md:col-span-2">
+                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">The ₹510 Portfolio & Photo Double-Charge</h4>
+                <p class="text-gray-300 font-medium">Purchasing a "portfolio" is mandatory alongside the diary, costing an exorbitant ₹510 (which supposedly includes 3 passport size photos). The portfolio has absolutely no practical use in the curriculum. To add insult to injury, the administration later asks for an *additional* ₹30 specifically for those same 3 photographs you already paid for in the bundle!</p>
+            </div>
+        </div>
+    </div>
+</div>''',
+    'vip-treatment': r'''<div class="relative pt-24 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <h1 class="text-5xl md:text-6xl font-black text-airblack dark:text-white tracking-tight mb-8">VIP <span class="text-airred">Treatment</span></h1>
+    <p class="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-400 font-medium">Rules for thee, but not for me.</p>
+</div>
+<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">
+    [ Content Redacted / Pending Verification ]
+</div>''',
+    'principals-note': r'''<div class="relative pt-24 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <div class="inline-block px-5 py-1 mb-8 rounded-full border border-airred/30 bg-transparent text-airred text-[11px] font-black tracking-[0.2em] uppercase">Communications</div>
+    <h1 class="text-5xl md:text-6xl font-black text-airblack dark:text-white tracking-tight mb-8">Principal's <span class="text-airred">Note</span></h1>
+    <p class="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-400 font-medium">Annotating the administration's official correspondence.</p>
+</div>
+
+<div class="max-w-4xl mx-auto mb-20 px-6">
+    <div class="bg-[#fcf8f2] dark:bg-[#1a1816] p-10 rounded-lg shadow-xl border-2 border-gray-200 dark:border-[#2a2826] relative">
+        <div class="absolute top-4 right-8 text-airred/50 text-6xl font-serif">"</div>
+        <p class="text-right text-gray-500 mb-8 font-serif">Date: Start of Term</p>
+        <p class="text-lg text-gray-800 dark:text-gray-200 font-serif leading-relaxed mb-6">Dear Parents and Students,</p>
+        <p class="text-lg text-gray-800 dark:text-gray-200 font-serif leading-relaxed mb-6">
+            We are excited to welcome you back to a campus that has been fully renovated over the summer. 
+            <span class="relative inline-block">
+                <span class="bg-yellow-200 dark:bg-yellow-900/30">Our facilities are second to none,</span>
+                <span class="absolute -top-10 -right-12 text-airred font-black text-sm italic transform rotate-6 border border-airred px-2 py-1 rounded bg-white dark:bg-airblack">The walls are unpainted!</span>
+            </span>
+            providing a world-class environment for your children to thrive.
+        </p>
+        <p class="text-lg text-gray-800 dark:text-gray-200 font-serif leading-relaxed mb-6">
+            We have also streamlined our fee structure to ensure complete transparency. 
+            <span class="relative inline-block">
+                <span class="bg-yellow-200 dark:bg-yellow-900/30">There are no hidden charges.</span>
+                <span class="absolute -bottom-10 -left-4 text-airred font-black text-sm italic transform -rotate-3 border border-airred px-2 py-1 rounded bg-white dark:bg-airblack">Then why is 4th std 52k?</span>
+            </span>
+        </p>
+        <p class="text-lg text-gray-800 dark:text-gray-200 font-serif leading-relaxed">Sincerely,<br/>The Administration</p>
+    </div>
+</div>''',
+    'policies': r'''<div class="relative pt-24 pb-16 px-6 sm:px-12 flex flex-col items-center text-center">
+    <div class="inline-block px-5 py-1 mb-8 rounded-full border border-airred/30 bg-transparent text-airred text-[11px] font-black tracking-[0.2em] uppercase">The Rulebook</div>
+    <h1 class="text-5xl md:text-6xl font-black text-airblack dark:text-white tracking-tight mb-8">Policies vs <span class="text-airred">Reality</span></h1>
+    <p class="mx-auto max-w-2xl text-xl text-gray-600 dark:text-gray-400 font-medium">What is promised on paper versus what students actually experience every day.</p>
+</div>
+
+<div class="max-w-5xl mx-auto mb-20 px-6">
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-[#151515] rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">The Official Policy</h3>
+                <p class="text-xl font-bold text-airblack dark:text-white">"State of the Art Computer Labs for All Grades"</p>
+            </div>
+            <div class="flex-1 bg-airred/5 border-l-4 border-airred p-6 rounded-r-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-airred mb-2">The Reality</h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 font-medium">Only a handful of computers actually boot up. The rest are dead screens taking up desk space, yet computer fees are still collected.</p>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-[#151515] rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">The Official Policy</h3>
+                <p class="text-xl font-bold text-airblack dark:text-white">"Comprehensive Physical Education Curriculum"</p>
+            </div>
+            <div class="flex-1 bg-airred/5 border-l-4 border-airred p-6 rounded-r-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-airred mb-2">The Reality</h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 font-medium">The PT teacher has been missing for the entire term. The school hasn't hired a replacement, and the entire PE syllabus remains completely untouched.</p>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-[#151515] rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">The Official Policy</h3>
+                <p class="text-xl font-bold text-airblack dark:text-white">"Voluntary & Equal Contributions for Farewell Events"</p>
+            </div>
+            <div class="flex-1 bg-airred/5 border-l-4 border-airred p-6 rounded-r-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-airred mb-2">The Reality</h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 font-medium">Mandatory unequal fees (₹1500 for boys, ₹1800 for girls) are collected. Students are then forced to dance and perform to specific religious songs against their preferences.</p>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-[#151515] rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">The Official Policy</h3>
+                <p class="text-xl font-bold text-airblack dark:text-white">"Optional Teacher's Day Gratitude Tokens"</p>
+            </div>
+            <div class="flex-1 bg-airred/5 border-l-4 border-airred p-6 rounded-r-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-airred mb-2">The Reality</h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 font-medium">A compulsory ₹100 is demanded from every single student, only for the school to hand back a cheap ₹20 junk food snack in return.</p>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-[#151515] rounded-2xl border border-gray-100 dark:border-gray-800 p-8 shadow-sm flex flex-col md:flex-row gap-8">
+            <div class="flex-1">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">The Official Policy</h3>
+                <p class="text-xl font-bold text-airblack dark:text-white">"Affordable and Educational Student Excursions"</p>
+            </div>
+            <div class="flex-1 bg-airred/5 border-l-4 border-airred p-6 rounded-r-xl">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-airred mb-2">The Reality</h3>
+                <p class="text-lg text-gray-700 dark:text-gray-300 font-medium">Students in Class 10 & 12 are pressured into paying an exorbitant ₹18,000 for a 3-day trip to Deltin in Daman, heavily intertwined with more forced performances.</p>
+            </div>
+        </div>
+    </div>
+</div>'''
+}
+
+@app.context_processor
+def inject_dynamic_pages():
+    pages = []
+    if supabase:
+        try:
+            res = supabase.table('pages').select('id').execute()
+            if res.data:
+                for p in res.data:
+                    title = p['id'].replace('-', ' ').title()
+                    pages.append({'id': p['id'], 'title': title})
+        except:
+            pass
+    
+    if not pages:
+        for page_id in mock_pages:
+            title = page_id.replace('-', ' ').title()
+            pages.append({'id': page_id, 'title': title})
+            
+    return dict(dynamic_pages=pages)
+
+
 mock_teachers = [
     {
         "id": 1,
@@ -927,39 +1204,16 @@ def edit_experience(exp_id):
             
     return redirect(url_for('experience'))
 
-@app.route('/policies')
-def policies():
-    return render_template('policies.html')
 
-def get_page_content(page_id, default_content=""):
-    if supabase:
-        try:
-            res = supabase.table('pages').select('content').eq('id', page_id).execute()
-            if res.data:
-                return res.data[0]['content']
-        except:
-            pass
-    return default_content
 
-@app.route('/principals-note')
-def principals_note():
-    content = get_page_content('principals_note', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
-    return render_template('principals_note.html', content=content)
 
-@app.route('/hall-of-shame')
-def hall_of_shame():
-    content = get_page_content('hall_of_shame', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
-    return render_template('hall_of_shame.html', content=content)
 
-@app.route('/fee-scam')
-def fee_scam():
-    content = get_page_content('fee_scam', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
-    return render_template('fee_scam.html', content=content)
 
-@app.route('/vip-treatment')
-def vip_treatment():
-    content = get_page_content('vip_treatment', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
-    return render_template('vip_treatment.html', content=content)
+
+
+
+
+
 
 @app.route('/admin')
 @admin_required
@@ -1018,6 +1272,7 @@ def admin():
         analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
         analytics['pending'] = analytics['total'] - analytics['verified']
         
+
     pages_content = {}
     if supabase:
         try:
@@ -1027,6 +1282,10 @@ def admin():
                     pages_content[p['id']] = p['content']
         except:
             pass
+    
+    if not pages_content:
+        for slug, content in mock_pages.items():
+            pages_content[slug] = content
 
     return render_template('admin.html', 
                            experiences=experiences, 
@@ -1056,6 +1315,46 @@ def delete_teacher(teacher_id):
 
 @app.route('/admin/save-page', methods=['POST'])
 @admin_required
+
+@app.route('/admin/create-page', methods=['POST'])
+@admin_required
+def create_page():
+    slug = request.form.get('slug').lower().replace(' ', '-')
+    title = request.form.get('title')
+    content = request.form.get('content')
+    
+    if not slug or not title:
+        flash('Slug and title are required', 'error')
+        return redirect(url_for('admin'))
+        
+    if supabase:
+        try:
+            supabase.table('pages').insert({'id': slug, 'content': content}).execute()
+            flash(f'Page "{title}" created successfully!', 'success')
+        except Exception as e:
+            flash(f'Error creating page: {e}', 'error')
+    else:
+        mock_pages[slug] = content
+        flash(f'Page "{title}" created successfully (local mode)!', 'success')
+        
+    return redirect(url_for('admin'))
+
+@app.route('/admin/delete-page/<slug>', methods=['POST'])
+@admin_required
+def delete_page(slug):
+    if supabase:
+        try:
+            supabase.table('pages').delete().eq('id', slug).execute()
+            flash(f'Page deleted successfully!', 'success')
+        except Exception as e:
+            flash(f'Error deleting page: {e}', 'error')
+    else:
+        if slug in mock_pages:
+            del mock_pages[slug]
+            flash(f'Page deleted successfully (local mode)!', 'success')
+            
+    return redirect(url_for('admin'))
+
 def save_page():
     page_id = request.form.get('page_id')
     content = request.form.get('content')

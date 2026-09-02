@@ -73,11 +73,9 @@
                     </a>
                 </div>
                 <div class="hidden lg:ml-6 lg:flex lg:items-center space-x-4 xl:space-x-5">
-                    <a href="{{ url_for('policies') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Policies</a>
-                    <a href="{{ url_for('principals_note') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Principal's Note</a>
-                    <a href="{{ url_for('hall_of_shame') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Hall of Shame</a>
-                    <a href="{{ url_for('fee_scam') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">The Fee Scam</a>
-                    <a href="{{ url_for('vip_treatment') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">VIP Treatment</a>
+                    {% for page in dynamic_pages %}
+                    <a href="{{ url_for('dynamic_page', slug=page.id) }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">{{ page.title }}</a>
+                    {% endfor %}
 
                     <a href="{{ url_for('experience') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Experiences</a>
                     <a href="{{ url_for('teachers') }}" class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-airblack dark:hover:text-gray-200 transition-colors">Teachers</a>                    
@@ -111,11 +109,9 @@
         <!-- Mobile Menu Container -->
         <div id="mobile-menu" class="hidden lg:hidden bg-white dark:bg-[#0a0a0a] border-b border-gray-200 dark:border-gray-800 absolute w-full left-0 top-16 shadow-lg">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                <a href="{{ url_for('policies') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Policies</a>
-                <a href="{{ url_for('principals_note') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Principal's Note</a>
-                <a href="{{ url_for('hall_of_shame') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Hall of Shame</a>
-                <a href="{{ url_for('fee_scam') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">The Fee Scam</a>
-                <a href="{{ url_for('vip_treatment') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">VIP Treatment</a>
+                {% for page in dynamic_pages %}
+                <a href="{{ url_for('dynamic_page', slug=page.id) }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">{{ page.title }}</a>
+                {% endfor %}
 
                 <a href="{{ url_for('experience') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Experiences</a>
                 <a href="{{ url_for('teachers') }}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800">Teachers</a>
