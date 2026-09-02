@@ -866,6 +866,17 @@ def inject_dynamic_pages():
             title = page_id.replace('-', ' ').title()
             pages.append({'id': page_id, 'title': title})
             
+    # Sort pages to maintain original navbar order
+    order = ['policies', 'hall-of-shame', 'fee-scam', 'vip-treatment', 'principals-note']
+    
+    def get_order(p):
+        try:
+            return order.index(p['id'])
+        except ValueError:
+            return len(order)
+            
+    pages.sort(key=get_order)
+            
     return dict(dynamic_pages=pages)
 
 
