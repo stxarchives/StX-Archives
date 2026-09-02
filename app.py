@@ -308,9 +308,10 @@ for exp in mock_experiences:
 
 @app.route('/api/experience/<int:exp_id>/react', methods=['POST'])
 def react_experience(exp_id):
-    session_key = f'reacted_exp_{exp_id}'
+    cookie_name = f'reacted_exp_{exp_id}'
     data = request.json
     emoji = data.get('emoji')
+    is_admin = session.get('admin_logged_in', False)
     
     exp = None
     if supabase:
@@ -327,28 +328,27 @@ def react_experience(exp_id):
     if not exp or 'reactions' not in exp or emoji not in exp['reactions']:
         return jsonify({'success': False, 'error': 'Experience or valid emoji not found'}), 404
         
-    current_reaction = session.get(session_key)
-    if current_reaction is True:
-        session.pop(session_key, None)
-        current_reaction = None
-        
-    if current_reaction:
-        if current_reaction == emoji:
-            exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            exp['reactions'][current_reaction] = max(0, exp['reactions'][current_reaction] - 1)
-            exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
-            session[session_key] = emoji
-            action = 'changed'
-            selected = emoji
-    else:
+    current_reaction = request.cookies.get(cookie_name)
+    
+    if is_admin:
         exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
-        session[session_key] = emoji
         action = 'added'
         selected = emoji
+    else:
+        if current_reaction:
+            if current_reaction == emoji:
+                exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                exp['reactions'][current_reaction] = max(0, exp['reactions'].get(current_reaction, 1) - 1)
+                exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
+                action = 'changed'
+                selected = emoji
+        else:
+            exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
+            action = 'added'
+            selected = emoji
         
     if supabase:
         try:
@@ -356,13 +356,22 @@ def react_experience(exp_id):
         except Exception as e:
             print(f"Supabase error updating react: {e}")
             
-    return jsonify({'success': True, 'reactions': exp['reactions'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'reactions': exp['reactions'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            
+    return response
 
 @app.route('/api/experience/<int:exp_id>/vote', methods=['POST'])
 def vote_experience(exp_id):
-    session_key = f'voted_exp_{exp_id}'
+    cookie_name = f'voted_exp_{exp_id}'
     data = request.json
     vote = data.get('vote')
+    is_admin = session.get('admin_logged_in', False)
     
     exp = None
     if supabase:
@@ -379,24 +388,27 @@ def vote_experience(exp_id):
     if not exp or 'helpful_votes' not in exp or vote not in exp['helpful_votes']:
         return jsonify({'success': False, 'error': 'Experience or vote type not found'}), 404
         
-    current_vote = session.get(session_key)
-    if current_vote:
-        if current_vote == vote:
-            exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'][current_vote] - 1)
-            exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
-            session[session_key] = vote
-            action = 'changed'
-            selected = vote
-    else:
+    current_vote = request.cookies.get(cookie_name)
+    
+    if is_admin:
         exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
-        session[session_key] = vote
         action = 'added'
         selected = vote
+    else:
+        if current_vote:
+            if current_vote == vote:
+                exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'].get(current_vote, 1) - 1)
+                exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
+                action = 'changed'
+                selected = vote
+        else:
+            exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
+            action = 'added'
+            selected = vote
         
     if supabase:
         try:
@@ -404,13 +416,22 @@ def vote_experience(exp_id):
         except Exception as e:
             print(f"Supabase error updating vote: {e}")
             
-    return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, vote, max_age=31536000)
+            
+    return response
 
 @app.route('/api/teacher/<int:teacher_id>/react', methods=['POST'])
 def react_teacher(teacher_id):
-    session_key = f'reacted_teacher_{teacher_id}'
+    cookie_name = f'reacted_teacher_{teacher_id}'
     data = request.json
     emoji = data.get('emoji')
+    is_admin = session.get('admin_logged_in', False)
     
     teacher = None
     if supabase:
@@ -427,28 +448,27 @@ def react_teacher(teacher_id):
     if not teacher or 'reactions' not in teacher or emoji not in teacher['reactions']:
         return jsonify({'success': False, 'error': 'Teacher or valid emoji not found'}), 404
         
-    current_reaction = session.get(session_key)
-    if current_reaction is True:
-        session.pop(session_key, None)
-        current_reaction = None
-        
-    if current_reaction:
-        if current_reaction == emoji:
-            teacher['reactions'][emoji] = max(0, teacher['reactions'][emoji] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            teacher['reactions'][current_reaction] = max(0, teacher['reactions'][current_reaction] - 1)
-            teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
-            session[session_key] = emoji
-            action = 'changed'
-            selected = emoji
-    else:
+    current_reaction = request.cookies.get(cookie_name)
+    
+    if is_admin:
         teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
-        session[session_key] = emoji
         action = 'added'
         selected = emoji
+    else:
+        if current_reaction:
+            if current_reaction == emoji:
+                teacher['reactions'][emoji] = max(0, teacher['reactions'][emoji] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                teacher['reactions'][current_reaction] = max(0, teacher['reactions'].get(current_reaction, 1) - 1)
+                teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+                action = 'changed'
+                selected = emoji
+        else:
+            teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+            action = 'added'
+            selected = emoji
         
     if supabase:
         try:
@@ -456,13 +476,22 @@ def react_teacher(teacher_id):
         except Exception as e:
             print(f"Supabase error updating teacher react: {e}")
             
-    return jsonify({'success': True, 'reactions': teacher['reactions'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'reactions': teacher['reactions'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            
+    return response
 
 @app.route('/api/teacher/<int:teacher_id>/vote', methods=['POST'])
 def vote_teacher(teacher_id):
-    session_key = f'voted_teacher_{teacher_id}'
+    cookie_name = f'voted_teacher_{teacher_id}'
     data = request.json
     vote = data.get('vote')
+    is_admin = session.get('admin_logged_in', False)
     
     teacher = None
     if supabase:
@@ -479,24 +508,27 @@ def vote_teacher(teacher_id):
     if not teacher or 'helpful_votes' not in teacher or vote not in teacher['helpful_votes']:
         return jsonify({'success': False, 'error': 'Teacher or vote type not found'}), 404
         
-    current_vote = session.get(session_key)
-    if current_vote:
-        if current_vote == vote:
-            teacher['helpful_votes'][vote] = max(0, teacher['helpful_votes'][vote] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            teacher['helpful_votes'][current_vote] = max(0, teacher['helpful_votes'][current_vote] - 1)
-            teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
-            session[session_key] = vote
-            action = 'changed'
-            selected = vote
-    else:
+    current_vote = request.cookies.get(cookie_name)
+    
+    if is_admin:
         teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
-        session[session_key] = vote
         action = 'added'
         selected = vote
+    else:
+        if current_vote:
+            if current_vote == vote:
+                teacher['helpful_votes'][vote] = max(0, teacher['helpful_votes'][vote] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                teacher['helpful_votes'][current_vote] = max(0, teacher['helpful_votes'].get(current_vote, 1) - 1)
+                teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+                action = 'changed'
+                selected = vote
+        else:
+            teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+            action = 'added'
+            selected = vote
         
     if supabase:
         try:
@@ -504,7 +536,15 @@ def vote_teacher(teacher_id):
         except Exception as e:
             print(f"Supabase error updating teacher vote: {e}")
             
-    return jsonify({'success': True, 'helpful_votes': teacher['helpful_votes'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'helpful_votes': teacher['helpful_votes'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, vote, max_age=31536000)
+            
+    return response
 
 mock_users = []
 mock_evidence = []
