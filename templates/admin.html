@@ -244,96 +244,162 @@
 
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
 <style>
-    /* Professional Dark Theme for Summernote */
+    /* Professional Theme for Summernote (Light & Dark) */
     .note-editor.note-frame {
-        border: 1px solid #1f2937 !important; /* dark-gray-800 */
-        border-radius: 0.75rem !important; /* rounded-xl */
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.75rem !important;
         overflow: hidden;
+        background-color: #ffffff !important;
+    }
+    .dark .note-editor.note-frame {
+        border-color: #1f2937 !important;
         background-color: #151515 !important;
     }
     .note-editor.note-frame .note-toolbar {
-        background-color: #111 !important; /* dark-gray-900 */
-        border-bottom: 1px solid #1f2937 !important;
+        background-color: #f9fafb !important;
+        border-bottom: 1px solid #e5e7eb !important;
         padding: 12px 16px !important;
     }
-    .note-editor.note-frame .note-statusbar {
+    .dark .note-editor.note-frame .note-toolbar {
         background-color: #111 !important;
-        border-top: 1px solid #1f2937 !important;
+        border-color: #1f2937 !important;
+    }
+    .note-editor.note-frame .note-statusbar {
+        background-color: #f9fafb !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor.note-frame .note-statusbar {
+        background-color: #111 !important;
+        border-color: #1f2937 !important;
     }
     .note-editor.note-frame .note-editing-area .note-editable {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        padding: 20px !important;
+    }
+    .dark .note-editor.note-frame .note-editing-area .note-editable {
         background-color: #151515 !important;
         color: #fff !important;
-        padding: 20px !important;
     }
     .note-editor .note-toolbar .note-btn {
         background-color: transparent !important;
         border: 1px solid transparent !important;
-        color: #9ca3af !important; /* text-gray-400 */
+        color: #4b5563 !important;
         border-radius: 0.5rem !important;
         padding: 6px 10px !important;
         transition: all 0.2s ease !important;
     }
+    .dark .note-editor .note-toolbar .note-btn {
+        color: #9ca3af !important;
+    }
     .note-editor .note-toolbar .note-btn:hover {
+        background-color: #e5e7eb !important;
+        color: #111827 !important;
+    }
+    .dark .note-editor .note-toolbar .note-btn:hover {
         background-color: #222 !important;
         color: #fff !important;
     }
     .note-editor .note-toolbar .note-btn.active {
-        background-color: #dc2626 !important; /* airred */
+        background-color: #dc2626 !important;
         color: #fff !important;
     }
     .note-editor .note-dropdown-menu {
-        background-color: #111 !important;
-        border: 1px solid #1f2937 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
         border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .dark .note-editor .note-dropdown-menu {
+        background-color: #111 !important;
+        border-color: #1f2937 !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
     }
     .note-editor .note-dropdown-menu * {
-        color: #d1d5db !important; /* text-gray-300 */
+        color: #4b5563 !important;
+    }
+    .dark .note-editor .note-dropdown-menu * {
+        color: #d1d5db !important;
     }
     .note-editor .note-dropdown-menu a:hover,
     .note-editor .note-dropdown-menu a:hover *,
     .note-editor .note-dropdown-item:hover,
     .note-editor .note-dropdown-item:hover * {
+        background-color: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    .dark .note-editor .note-dropdown-menu a:hover,
+    .dark .note-editor .note-dropdown-menu a:hover *,
+    .dark .note-editor .note-dropdown-item:hover,
+    .dark .note-editor .note-dropdown-item:hover * {
         background-color: #222 !important;
         color: #fff !important;
     }
     .note-editor .note-modal-content {
-        background-color: #151515 !important;
-        border: 1px solid #1f2937 !important;
-        color: #e5e7eb !important;
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111827 !important;
         border-radius: 1rem !important;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    }
+    .dark .note-editor .note-modal-content {
+        background-color: #151515 !important;
+        border-color: #1f2937 !important;
+        color: #e5e7eb !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
     }
     .note-editor .note-modal-content * {
+        color: #111827;
+    }
+    .dark .note-editor .note-modal-content * {
         color: #e5e7eb;
     }
     .note-editor .note-modal-header {
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor .note-modal-header {
         border-bottom: 1px solid #1f2937 !important;
     }
     .note-editor .note-modal-footer {
+        border-top: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor .note-modal-footer {
         border-top: 1px solid #1f2937 !important;
     }
     .note-editor .note-modal-title {
-        color: white !important;
+        color: #111827 !important;
         font-weight: bold;
     }
+    .dark .note-editor .note-modal-title {
+        color: white !important;
+    }
     .note-editor .note-modal-content label {
-        color: #9ca3af !important;
+        color: #6b7280 !important;
         font-weight: bold;
         margin-bottom: 8px;
         display: inline-block;
     }
+    .dark .note-editor .note-modal-content label {
+        color: #9ca3af !important;
+    }
     .note-editor .note-modal-content input[type="text"],
     .note-editor .note-modal-content input[type="url"],
     .note-editor .note-modal-content input.note-input {
-        background-color: #111 !important;
-        border: 1px solid #374151 !important;
-        color: white !important;
+        background-color: #f9fafb !important;
+        border: 1px solid #d1d5db !important;
+        color: #111827 !important;
         border-radius: 0.5rem !important;
         padding: 8px 12px !important;
         width: 100% !important;
         box-sizing: border-box !important;
         margin-bottom: 16px !important;
+    }
+    .dark .note-editor .note-modal-content input[type="text"],
+    .dark .note-editor .note-modal-content input[type="url"],
+    .dark .note-editor .note-modal-content input.note-input {
+        background-color: #111 !important;
+        border-color: #374151 !important;
+        color: white !important;
     }
     .note-editor .note-modal-content input:focus {
         border-color: #dc2626 !important;
