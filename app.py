@@ -1371,6 +1371,55 @@ def toggle_maintenance():
     maintenance_cache['last_checked'] = 0
     return redirect(url_for('admin'))
 
+@app.route('/admin/export', methods=['GET'])
+@admin_required
+def export_database():
+    import json
+    from flask import Response
+    from datetime import datetime
+    
+    export_data = {
+        'experiences': [],
+        'teachers': [],
+        'evidence': [],
+        'incidents': [],
+        'pages': []
+    }
+    
+    if supabase:
+        try:
+            exp_res = supabase.table('experiences').select('*').execute()
+            export_data['experiences'] = exp_res.data if exp_res.data else []
+            
+            teach_res = supabase.table('teachers').select('*').execute()
+            export_data['teachers'] = teach_res.data if teach_res.data else []
+            
+            ev_res = supabase.table('evidence').select('*').execute()
+            export_data['evidence'] = ev_res.data if ev_res.data else []
+            
+            inc_res = supabase.table('incidents').select('*').execute()
+            export_data['incidents'] = inc_res.data if inc_res.data else []
+            
+            page_res = supabase.table('pages').select('*').execute()
+            export_data['pages'] = page_res.data if page_res.data else []
+        except Exception as e:
+            flash(f'Error exporting from Supabase: {str(e)}', 'error')
+            return redirect(url_for('admin'))
+    else:
+        export_data['experiences'] = mock_experiences
+        export_data['teachers'] = mock_teachers
+        export_data['evidence'] = mock_evidence
+        export_data['incidents'] = mock_timeline
+
+    json_data = json.dumps(export_data, indent=4)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    return Response(
+        json_data,
+        mimetype="application/json",
+        headers={"Content-disposition": f"attachment; filename=stx_archive_backup_{timestamp}.json"}
+    )
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
