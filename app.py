@@ -996,6 +996,9 @@ def admin():
             
             inc_response = supabase.table('incidents').select('*').order('id', desc=False).execute()
             incidents_list = inc_response.data
+
+            teach_response = supabase.table('teachers').select('*').order('id', desc=True).execute()
+            teachers_list = teach_response.data
             
             analytics['total'] = len(experiences)
             analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
@@ -1005,10 +1008,12 @@ def admin():
             experiences = mock_experiences
             evidence_list = mock_evidence
             incidents_list = mock_timeline
+            teachers_list = mock_teachers
     else:
         experiences = mock_experiences
         evidence_list = mock_evidence
         incidents_list = mock_timeline
+        teachers_list = mock_teachers
         analytics['total'] = len(experiences)
         analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
         analytics['pending'] = analytics['total'] - analytics['verified']
@@ -1027,9 +1032,27 @@ def admin():
                            experiences=experiences, 
                            evidence=evidence_list,
                            incidents=incidents_list,
+                           teachers=teachers_list,
                            analytics=analytics,
                            pages=pages_content,
                            maintenance_mode=is_maintenance)
+
+@app.route('/admin/delete_teacher/<int:teacher_id>', methods=['POST'])
+@admin_required
+def delete_teacher(teacher_id):
+    if supabase:
+        try:
+            supabase.table('teachers').delete().eq('id', teacher_id).execute()
+            flash('Teacher deleted successfully.', 'success')
+            return redirect(url_for('admin'))
+        except Exception as e:
+            print(f'Error deleting teacher: {str(e)}')
+            
+    global mock_teachers
+    mock_teachers = [t for t in mock_teachers if t.get('id') != teacher_id]
+    flash('Teacher deleted (local mock data).', 'success')
+        
+    return redirect(url_for('admin'))
 
 @app.route('/admin/save-page', methods=['POST'])
 @admin_required
