@@ -44,8 +44,8 @@
 
     <!-- Share Your Experience Form (Moved to Bottom) -->
     <div class="mt-20 border-t border-gray-200 dark:border-gray-800 pt-16 flex flex-col items-center">
-        <button id="toggle-experience-btn" class="mb-8 px-8 py-4 bg-airred hover:bg-airdarkred text-white text-lg font-black uppercase tracking-widest rounded-xl shadow-xl hover:shadow-airred/30 transition-all transform hover:-translate-y-1">
-            Share Your Own Experience
+        <button id="toggle-experience-btn" class="mb-8 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-airred hover:bg-airdarkred focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airred transition-all transform hover:-translate-y-1">
+            Want to share your experience?
         </button>
         
         <div id="experience-form-container" class="hidden w-full transition-all">
@@ -276,10 +276,10 @@
         toggleBtn.addEventListener('click', () => {
             formContainer.classList.toggle('hidden');
             if(!formContainer.classList.contains('hidden')) {
-                toggleBtn.innerText = "Hide Form";
+                toggleBtn.innerText = "Cancel Form";
                 formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-                toggleBtn.innerText = "Share Your Own Experience";
+                toggleBtn.innerText = "Want to share your experience?";
             }
         });
     }
