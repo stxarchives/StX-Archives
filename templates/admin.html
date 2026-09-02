@@ -11,7 +11,15 @@
         <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-2">Admin Dashboard</h1>
         <p class="text-gray-600 dark:text-gray-400 font-medium">Manage portal content, review submissions, and oversee evidence.</p>
     </div>
+    <a href="{{ url_for('admin_export') }}" class="hidden sm:flex px-6 py-3 bg-gray-900 hover:bg-black dark:bg-gray-800 dark:hover:bg-gray-700 text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Download Backup
+    </a>
 </div>
+<a href="{{ url_for('admin_export') }}" class="sm:hidden w-full mb-8 px-6 py-3 bg-gray-900 hover:bg-black dark:bg-gray-800 dark:hover:bg-gray-700 text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg flex justify-center items-center">
+    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+    Download Backup
+</a>
 
 <!-- Analytics Dashboard -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -37,11 +45,23 @@
         <!-- Add Evidence Form -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Upload Evidence</h3>
-            <form action="{{ url_for('upload_evidence') }}" method="POST" class="space-y-4">
-                <input type="text" name="title" placeholder="Evidence Title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                <input type="text" name="category" placeholder="Category" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                <input type="url" name="image_url" placeholder="Image URL (optional)" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                <textarea name="description" placeholder="Description" rows="2" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+            <form action="{{ url_for('upload_evidence') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Evidence Title *</label>
+                    <input type="text" name="title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Category</label>
+                    <input type="text" name="category" placeholder="e.g. Facilities, Staff" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Image Evidence</label>
+                    <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airlight file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Detailed Description</label>
+                    <textarea name="description" rows="3" placeholder="Provide context or explanation for this evidence..." class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+                </div>
                 <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-blue-600 hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Upload Evidence</button>
             </form>
         </div>
@@ -76,16 +96,38 @@
         <!-- Add Timeline Event Form -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Add Timeline Event</h3>
-            <form action="{{ url_for('add_timeline') }}" method="POST" class="space-y-4">
-                <input type="text" name="title" placeholder="Event Title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                <select name="status" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                    <option value="" disabled selected>Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                </select>
-                <textarea name="description" placeholder="Description" rows="2" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
-                <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-purple-600 hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Add Event</button>
+            <form action="{{ url_for('add_timeline') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Event Title *</label>
+                    <input type="text" name="title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Current Status *</label>
+                    <select name="status" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                        <option value="" disabled selected>Select Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Impact Level</label>
+                    <select name="impact" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Event Image</label>
+                    <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airlight file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Full Description *</label>
+                    <textarea name="description" required rows="3" placeholder="Explain what happened..." class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-purple-600 hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Add Timeline Event</button>
             </form>
         </div>
         
@@ -119,9 +161,23 @@
         <!-- Force Post Experience -->
         <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all">
             <h3 class="text-xl font-black text-airblack dark:text-white mb-4 tracking-tight">Force Post Experience</h3>
-            <form action="{{ url_for('admin_add_experience') }}" method="POST" class="space-y-4">
-                <input type="text" name="title" placeholder="Title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
-                <textarea name="details" placeholder="Detailed Account" required rows="2" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+            <form action="{{ url_for('admin_add_experience') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Post Title *</label>
+                    <input type="text" name="title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Category</label>
+                    <input type="text" name="category" placeholder="e.g. Academics, Extracurriculars" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Image Attachment</label>
+                    <input type="file" name="image" accept="image/*" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2 text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-airlight file:text-blue-700 hover:file:bg-blue-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Detailed Account *</label>
+                    <textarea name="details" required rows="4" placeholder="Full story..." class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 resize-none"></textarea>
+                </div>
                 <button type="submit" class="w-full bg-airlight dark:bg-[#222] hover:bg-airred hover:text-white text-airblack dark:text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">Force Post</button>
             </form>
         </div>
@@ -134,6 +190,16 @@
                 <input type="password" name="new_password" placeholder="New Password" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
                 <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider hover:bg-black">Change Password</button>
             </form>
+        </div>
+        
+        <!-- Data Management -->
+        <div class="bg-white dark:bg-[#151515] p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 transition-all text-center">
+            <h3 class="text-xl font-black text-airblack dark:text-white mb-2 tracking-tight">Data Management</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mb-6">Backup Database</p>
+            <a href="{{ url_for('export_database') }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors text-sm uppercase tracking-wider">
+                Export as JSON
+            </a>
+            <p class="mt-4 text-xs font-medium text-gray-400">Downloads all experiences, teachers, evidence, and incidents.</p>
         </div>
         
         <!-- Kill Switch -->
@@ -159,6 +225,253 @@
         </div>
     </div>
 </div>
+
+<!-- Page Content Management System (CMS) -->
+<div class="max-w-6xl mx-auto px-6 mb-12">
+    <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 p-8">
+        <h2 class="text-2xl font-black text-airblack dark:text-white mb-6">Page Content (CMS)</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="lg:col-span-1 border-r border-gray-200 dark:border-gray-800 pr-6">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Select Page</p>
+                <div class="space-y-2" id="cms-tabs">
+                    <button type="button" onclick="loadCMSPage('vip_treatment')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-airred text-white">VIP Treatment</button>
+                    <button type="button" onclick="loadCMSPage('fee_scam')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]">Fee Scam</button>
+                    <button type="button" onclick="loadCMSPage('hall_of_shame')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]">Hall of Shame</button>
+                </div>
+            </div>
+            <div class="lg:col-span-3">
+                <form action="{{ url_for('save_page') }}" method="POST">
+                    <input type="hidden" name="page_id" id="cms-page-id" value="vip_treatment">
+                    <textarea name="content" id="cms-editor" rows="12" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-sm font-mono focus:ring-airred focus:border-airred mb-4">{{ pages.get('vip_treatment', '') }}</textarea>
+                    <button type="submit" class="bg-airred hover:bg-airdarkred text-white font-bold py-3 px-8 rounded-xl transition-colors text-sm uppercase tracking-wider mt-4">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    /* Professional Theme for Summernote (Light & Dark) */
+    .note-editor.note-frame {
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.75rem !important;
+        overflow: hidden;
+        background-color: #ffffff !important;
+    }
+    .dark .note-editor.note-frame {
+        border-color: #1f2937 !important;
+        background-color: #151515 !important;
+    }
+    .note-editor.note-frame .note-toolbar {
+        background-color: #f9fafb !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 12px 16px !important;
+    }
+    .dark .note-editor.note-frame .note-toolbar {
+        background-color: #111 !important;
+        border-color: #1f2937 !important;
+    }
+    .note-editor.note-frame .note-statusbar {
+        background-color: #f9fafb !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor.note-frame .note-statusbar {
+        background-color: #111 !important;
+        border-color: #1f2937 !important;
+    }
+    .note-editor.note-frame .note-editing-area .note-editable {
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        padding: 20px !important;
+    }
+    .dark .note-editor.note-frame .note-editing-area .note-editable {
+        background-color: #151515 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-toolbar .note-btn {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        color: #4b5563 !important;
+        border-radius: 0.5rem !important;
+        padding: 6px 10px !important;
+        transition: all 0.2s ease !important;
+    }
+    .dark .note-editor .note-toolbar .note-btn {
+        color: #9ca3af !important;
+    }
+    .note-editor .note-toolbar .note-btn:hover {
+        background-color: #e5e7eb !important;
+        color: #111827 !important;
+    }
+    .dark .note-editor .note-toolbar .note-btn:hover {
+        background-color: #222 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-toolbar .note-btn.active {
+        background-color: #dc2626 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-dropdown-menu {
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    }
+    .dark .note-editor .note-dropdown-menu {
+        background-color: #111 !important;
+        border-color: #1f2937 !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+    }
+    .note-editor .note-dropdown-menu * {
+        color: #4b5563 !important;
+    }
+    .dark .note-editor .note-dropdown-menu * {
+        color: #d1d5db !important;
+    }
+    .note-editor .note-dropdown-menu a:hover,
+    .note-editor .note-dropdown-menu a:hover *,
+    .note-editor .note-dropdown-item:hover,
+    .note-editor .note-dropdown-item:hover * {
+        background-color: #f3f4f6 !important;
+        color: #111827 !important;
+    }
+    .dark .note-editor .note-dropdown-menu a:hover,
+    .dark .note-editor .note-dropdown-menu a:hover *,
+    .dark .note-editor .note-dropdown-item:hover,
+    .dark .note-editor .note-dropdown-item:hover * {
+        background-color: #222 !important;
+        color: #fff !important;
+    }
+    .note-editor .note-modal-content {
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        color: #111827 !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+    }
+    .dark .note-editor .note-modal-content {
+        background-color: #151515 !important;
+        border-color: #1f2937 !important;
+        color: #e5e7eb !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    }
+    .note-editor .note-modal-content * {
+        color: #111827;
+    }
+    .dark .note-editor .note-modal-content * {
+        color: #e5e7eb;
+    }
+    .note-editor .note-modal-header {
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor .note-modal-header {
+        border-bottom: 1px solid #1f2937 !important;
+    }
+    .note-editor .note-modal-footer {
+        border-top: 1px solid #e5e7eb !important;
+    }
+    .dark .note-editor .note-modal-footer {
+        border-top: 1px solid #1f2937 !important;
+    }
+    .note-editor .note-modal-title {
+        color: #111827 !important;
+        font-weight: bold;
+    }
+    .dark .note-editor .note-modal-title {
+        color: white !important;
+    }
+    .note-editor .note-modal-content label {
+        color: #6b7280 !important;
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+    .dark .note-editor .note-modal-content label {
+        color: #9ca3af !important;
+    }
+    .note-editor .note-modal-content input[type="text"],
+    .note-editor .note-modal-content input[type="url"],
+    .note-editor .note-modal-content input.note-input {
+        background-color: #f9fafb !important;
+        border: 1px solid #d1d5db !important;
+        color: #111827 !important;
+        border-radius: 0.5rem !important;
+        padding: 8px 12px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        margin-bottom: 16px !important;
+    }
+    .dark .note-editor .note-modal-content input[type="text"],
+    .dark .note-editor .note-modal-content input[type="url"],
+    .dark .note-editor .note-modal-content input.note-input {
+        background-color: #111 !important;
+        border-color: #374151 !important;
+        color: white !important;
+    }
+    .note-editor .note-modal-content input:focus {
+        border-color: #dc2626 !important;
+        outline: none !important;
+    }
+    .note-editor .note-modal-content input[type="checkbox"] {
+        accent-color: #dc2626 !important;
+        margin-right: 8px !important;
+        width: auto !important;
+        margin-bottom: 0 !important;
+    }
+    .note-editor .note-modal-content .note-btn {
+        background-color: #dc2626 !important;
+        color: white !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 0.5rem !important;
+        font-weight: bold !important;
+    }
+    .note-editor .note-modal-content .note-btn:hover {
+        background-color: #b91c1c !important;
+    }
+    .note-btn-group .note-btn {
+        margin-right: 4px !important;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<script>
+    const pagesData = {
+        'vip_treatment': `{{ pages.get('vip_treatment', '') | safe | replace('`', '\\`') }}`,
+        'fee_scam': `{{ pages.get('fee_scam', '') | safe | replace('`', '\\`') }}`,
+        'hall_of_shame': `{{ pages.get('hall_of_shame', '') | safe | replace('`', '\\`') }}`
+    };
+
+    $(document).ready(function() {
+        $('#cms-editor').summernote({
+            placeholder: 'Write your page content here...',
+            tabsize: 2,
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+    });
+
+    function loadCMSPage(pageId) {
+        // Update tabs
+        document.querySelectorAll('.cms-tab').forEach(tab => {
+            tab.className = "cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]";
+        });
+        event.currentTarget.className = "cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-airred text-white";
+        
+        // Update form
+        document.getElementById('cms-page-id').value = pageId;
+        $('#cms-editor').summernote('code', pagesData[pageId] || '');
+    }
+</script>
 
 <!-- Submission Queue with Live Search & Bulk Actions -->
 <div class="max-w-6xl mx-auto px-6 mb-20">
@@ -191,6 +504,7 @@
                             <th class="px-6 py-4">Status</th>
                             <th class="px-6 py-4">Title & Details</th>
                             <th class="px-6 py-4">Identity</th>
+                            <th class="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -215,12 +529,15 @@
                                 <div class="text-airblack dark:text-white">{{ exp.name }}</div>
                                 <div class="text-gray-500 text-xs">{{ exp.email or 'No email' }}</div>
                             </td>
+                            <td class="px-6 py-6 align-top text-right">
+                                <button type="button" onclick="openEditModal({{ exp.id }}, '{{ exp.title | replace('\'', '\\\'') | replace('"', '\\"') }}', '{{ exp.details | replace('\'', '\\\'') | replace('"', '\\"') | replace('\n', '\\n') }}', '{{ exp.category }}', {{ exp.helpful_votes.get('yes', 0) if exp.helpful_votes else 0 }}, {{ exp.helpful_votes.get('no', 0) if exp.helpful_votes else 0 }}, {{ exp.reactions.get('👍', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('❤️', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😂', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😮', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('😢', 0) if exp.reactions else 0 }}, {{ exp.reactions.get('🙏', 0) if exp.reactions else 0 }})" class="text-xs font-bold uppercase tracking-widest px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-500 rounded-lg transition-colors border border-blue-500/20">Edit</button>
+                            </td>
                         </tr>
                         {% endfor %}
                         
                         {% if not experiences %}
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest">
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500 font-bold uppercase tracking-widest">
                                 No submissions in the queue.
                             </td>
                         </tr>
@@ -263,6 +580,78 @@
         });
         document.getElementById('selectAll').checked = false;
     }
+
+    // Edit Modal Logic
+    function openEditModal(id, title, details, category, helpfulYes, helpfulNo, rLike, rLove, rHaha, rWow, rSad, rPray) {
+        document.getElementById('edit-exp-form').action = `/admin/edit-experience/${id}`;
+        document.getElementById('edit-title').value = title;
+        document.getElementById('edit-details').value = details;
+        document.getElementById('edit-category').value = category;
+        document.getElementById('edit-fake-helpful').value = helpfulYes;
+        document.getElementById('edit-fake-unhelpful').value = helpfulNo;
+        document.getElementById('react-like').value = rLike;
+        document.getElementById('react-love').value = rLove;
+        document.getElementById('react-haha').value = rHaha;
+        document.getElementById('react-wow').value = rWow;
+        document.getElementById('react-sad').value = rSad;
+        document.getElementById('react-pray').value = rPray;
+        document.getElementById('edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
 </script>
+
+<!-- Edit Experience Modal -->
+<div id="edit-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#151515] rounded-2xl max-w-2xl w-full border border-gray-200 dark:border-gray-800 shadow-2xl relative">
+        <button onclick="closeEditModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="p-8">
+            <h3 class="text-2xl font-black text-airblack dark:text-white mb-6 tracking-tight">Edit Experience & Manipulate Reactions</h3>
+            <form id="edit-exp-form" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Title</label>
+                    <input type="text" id="edit-title" name="title" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Details</label>
+                    <textarea id="edit-details" name="details" required rows="4" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Category</label>
+                    <input type="text" id="edit-category" name="category" required class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-airred focus:border-airred">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-green-500 mb-2">Helpful (Yes) Votes</label>
+                        <input type="number" id="edit-fake-helpful" name="fake_helpful" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-green-500 focus:border-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-red-500 mb-2">Unhelpful (No) Votes</label>
+                        <input type="number" id="edit-fake-unhelpful" name="fake_unhelpful" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 pt-2">
+                    <div><label class="block text-xs font-bold mb-1">👍 Likes</label><input type="number" id="react-like" name="react_like" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">❤️ Love</label><input type="number" id="react-love" name="react_love" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😂 Haha</label><input type="number" id="react-haha" name="react_haha" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😮 Wow</label><input type="number" id="react-wow" name="react_wow" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">😢 Sad</label><input type="number" id="react-sad" name="react_sad" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                    <div><label class="block text-xs font-bold mb-1">🙏 Pray</label><input type="number" id="react-pray" name="react_pray" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-2"></div>
+                </div>
+
+                <div class="pt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider uppercase bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider uppercase bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-lg shadow-blue-600/20">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

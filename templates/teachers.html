@@ -33,7 +33,7 @@
         </div>
 
         <div class="mt-16 text-center">
-            {% if session.get('user_logged_in') or session.get('admin_logged_in') %}
+            {% if (session.get('user_logged_in') and session.get('email_verified')) or session.get('admin_logged_in') %}
                 <button id="toggle-form-btn" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-airred hover:bg-airdarkred focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-airred transition-all transform hover:-translate-y-1">
                     Want to add your teacher?
                 </button>
@@ -65,6 +65,14 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            {% elif session.get('user_logged_in') %}
+                <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl p-12 text-center border border-gray-100 dark:border-gray-800 mb-20 max-w-2xl mx-auto">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 text-yellow-500 mb-6">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-black text-airblack dark:text-white mb-4">Verify Your Email</h3>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium mb-8">Please verify your email address to add teachers. If you haven't received a link, check your spam folder.</p>
                 </div>
             {% else %}
                 <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-800 text-center max-w-2xl mx-auto">

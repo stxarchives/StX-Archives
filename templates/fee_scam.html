@@ -8,25 +8,6 @@
 </div>
 
 <div class="max-w-5xl mx-auto px-6 mb-20 space-y-8">
-    <div class="bg-[#151515] border border-gray-800 rounded-2xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 text-9xl font-black text-gray-800/30 select-none">₹</div>
-        <h2 class="text-3xl font-black text-white mb-6">4th Standard: ₹52,000</h2>
-        <p class="text-xl text-gray-400 mb-8 font-medium">A staggering fee structure for elementary education, completely decoupled from the actual facilities provided (unpainted walls, dead computers).</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred">
-                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">Council Child Labor</h4>
-                <p class="text-gray-300 font-medium">They take ₹630 just to make a student a "council member". The reward? Students act as free labor, moving benches and doing school chores. You pay them to do their manual labor.</p>
-            </div>
-            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred">
-                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">Gold-Plated Books</h4>
-                <p class="text-gray-300 font-medium">Book prices are exorbitantly inflated, priced like buying gold. Furthermore, the school diary is not included and must be purchased separately.</p>
-            </div>
-            <div class="bg-[#111] p-6 rounded-xl border-l-4 border-airred md:col-span-2">
-                <h4 class="text-airred font-black uppercase tracking-widest text-sm mb-2">The ₹510 Portfolio & Photo Double-Charge</h4>
-                <p class="text-gray-300 font-medium">Purchasing a "portfolio" is mandatory alongside the diary, costing an exorbitant ₹510 (which supposedly includes 3 passport size photos). The portfolio has absolutely no practical use in the curriculum. To add insult to injury, the administration later asks for an *additional* ₹30 specifically for those same 3 photographs you already paid for in the bundle!</p>
-            </div>
-        </div>
-    </div>
+    {{ content | safe }}
 </div>
 {% endblock %}

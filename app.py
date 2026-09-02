@@ -12,6 +12,12 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "super-secret-key-change-in-produ
 url: str = os.getenv("SUPABASE_URL", "")
 key: str = os.getenv("SUPABASE_KEY", "")
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'mp4', 'mov'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Initialize Supabase only if credentials are provided
 supabase: Client = None
 if url and key:
@@ -141,18 +147,47 @@ def teachers():
             flash('You must be logged in to add a teacher.', 'error')
             return redirect(url_for('login'))
             
+        if 'admin_logged_in' not in session and not session.get('email_verified'):
+            flash('You must verify your email address before adding a teacher.', 'error')
+            return redirect(url_for('teachers'))
+            
         name = request.form.get('name')
         subject = request.form.get('subject')
         description = request.form.get('description')
         
         image_url = ""
+        
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+            
         if 'image' in request.files:
             file = request.files['image']
-            if file and file.filename != '':
+            if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
-                file.save(filepath)
-                image_url = '/' + filepath
+                
+                if supabase:
+                    try:
+                        file_bytes = file.read()
+                        # Upload to Supabase Storage
+                        res = supabase.storage.from_("uploads").upload(
+                            file=file_bytes,
+                            path=f"teachers/{filename}",
+                            file_options={"content-type": file.content_type}
+                        )
+                        # Get public URL
+                        public_url = supabase.storage.from_("uploads").get_public_url(f"teachers/{filename}")
+                        image_url = public_url
+                    except Exception as e:
+                        print(f"Error uploading to Supabase Storage: {e}")
+                        # Fallback to local save
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                        file.seek(0)
+                        file.save(filepath)
+                        image_url = '/' + filepath
+                else:
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER_TEACHERS'], filename)
+                    file.save(filepath)
+                    image_url = '/' + filepath
 
         new_teacher = {
             "name": name,
@@ -216,6 +251,8 @@ def document():
     return render_template('document.html')
 
 # Mock database for local testing if Supabase isn't connected yet
+mock_comments = []
+
 mock_experiences = [
     {
         "id": 1,
@@ -283,9 +320,10 @@ for exp in mock_experiences:
 
 @app.route('/api/experience/<int:exp_id>/react', methods=['POST'])
 def react_experience(exp_id):
-    session_key = f'reacted_exp_{exp_id}'
+    cookie_name = f'reacted_exp_{exp_id}'
     data = request.json
     emoji = data.get('emoji')
+    is_admin = session.get('admin_logged_in', False)
     
     exp = None
     if supabase:
@@ -299,31 +337,37 @@ def react_experience(exp_id):
     if not exp:
         exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
         
-    if not exp or 'reactions' not in exp or emoji not in exp['reactions']:
-        return jsonify({'success': False, 'error': 'Experience or valid emoji not found'}), 404
+    if not exp:
+        return jsonify({'success': False, 'error': 'Experience not found'}), 404
         
-    current_reaction = session.get(session_key)
-    if current_reaction is True:
-        session.pop(session_key, None)
-        current_reaction = None
+    valid_emojis = ['🔥', '👏', '😂', '😢', '😡']
+    if emoji not in valid_emojis:
+        return jsonify({'success': False, 'error': 'Invalid emoji'}), 400
         
-    if current_reaction:
-        if current_reaction == emoji:
-            exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            exp['reactions'][current_reaction] = max(0, exp['reactions'][current_reaction] - 1)
-            exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
-            session[session_key] = emoji
-            action = 'changed'
-            selected = emoji
-    else:
+    if 'reactions' not in exp or not exp['reactions']:
+        exp['reactions'] = {}
+        
+    current_reaction = request.cookies.get(cookie_name)
+    
+    if is_admin:
         exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
-        session[session_key] = emoji
         action = 'added'
         selected = emoji
+    else:
+        if current_reaction:
+            if current_reaction == emoji:
+                exp['reactions'][emoji] = max(0, exp['reactions'][emoji] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                exp['reactions'][current_reaction] = max(0, exp['reactions'].get(current_reaction, 1) - 1)
+                exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
+                action = 'changed'
+                selected = emoji
+        else:
+            exp['reactions'][emoji] = exp['reactions'].get(emoji, 0) + 1
+            action = 'added'
+            selected = emoji
         
     if supabase:
         try:
@@ -331,13 +375,22 @@ def react_experience(exp_id):
         except Exception as e:
             print(f"Supabase error updating react: {e}")
             
-    return jsonify({'success': True, 'reactions': exp['reactions'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'reactions': exp['reactions'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            
+    return response
 
 @app.route('/api/experience/<int:exp_id>/vote', methods=['POST'])
 def vote_experience(exp_id):
-    session_key = f'voted_exp_{exp_id}'
+    cookie_name = f'voted_exp_{exp_id}'
     data = request.json
     vote = data.get('vote')
+    is_admin = session.get('admin_logged_in', False)
     
     exp = None
     if supabase:
@@ -351,27 +404,36 @@ def vote_experience(exp_id):
     if not exp:
         exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
         
-    if not exp or 'helpful_votes' not in exp or vote not in exp['helpful_votes']:
-        return jsonify({'success': False, 'error': 'Experience or vote type not found'}), 404
+    if not exp:
+        return jsonify({'success': False, 'error': 'Experience not found'}), 404
         
-    current_vote = session.get(session_key)
-    if current_vote:
-        if current_vote == vote:
-            exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'][current_vote] - 1)
-            exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
-            session[session_key] = vote
-            action = 'changed'
-            selected = vote
-    else:
+    if vote not in ['yes', 'no']:
+        return jsonify({'success': False, 'error': 'Invalid vote type'}), 400
+        
+    if 'helpful_votes' not in exp or not exp['helpful_votes']:
+        exp['helpful_votes'] = {}
+        
+    current_vote = request.cookies.get(cookie_name)
+    
+    if is_admin:
         exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
-        session[session_key] = vote
         action = 'added'
         selected = vote
+    else:
+        if current_vote:
+            if current_vote == vote:
+                exp['helpful_votes'][vote] = max(0, exp['helpful_votes'][vote] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                exp['helpful_votes'][current_vote] = max(0, exp['helpful_votes'].get(current_vote, 1) - 1)
+                exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
+                action = 'changed'
+                selected = vote
+        else:
+            exp['helpful_votes'][vote] = exp['helpful_votes'].get(vote, 0) + 1
+            action = 'added'
+            selected = vote
         
     if supabase:
         try:
@@ -379,13 +441,22 @@ def vote_experience(exp_id):
         except Exception as e:
             print(f"Supabase error updating vote: {e}")
             
-    return jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'helpful_votes': exp['helpful_votes'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, vote, max_age=31536000)
+            
+    return response
 
 @app.route('/api/teacher/<int:teacher_id>/react', methods=['POST'])
 def react_teacher(teacher_id):
-    session_key = f'reacted_teacher_{teacher_id}'
+    cookie_name = f'reacted_teacher_{teacher_id}'
     data = request.json
     emoji = data.get('emoji')
+    is_admin = session.get('admin_logged_in', False)
     
     teacher = None
     if supabase:
@@ -399,31 +470,37 @@ def react_teacher(teacher_id):
     if not teacher:
         teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
         
-    if not teacher or 'reactions' not in teacher or emoji not in teacher['reactions']:
-        return jsonify({'success': False, 'error': 'Teacher or valid emoji not found'}), 404
+    if not teacher:
+        return jsonify({'success': False, 'error': 'Teacher not found'}), 404
         
-    current_reaction = session.get(session_key)
-    if current_reaction is True:
-        session.pop(session_key, None)
-        current_reaction = None
+    valid_emojis = ['🔥', '👏', '😂', '😢', '😡']
+    if emoji not in valid_emojis:
+        return jsonify({'success': False, 'error': 'Invalid emoji'}), 400
         
-    if current_reaction:
-        if current_reaction == emoji:
-            teacher['reactions'][emoji] = max(0, teacher['reactions'][emoji] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            teacher['reactions'][current_reaction] = max(0, teacher['reactions'][current_reaction] - 1)
-            teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
-            session[session_key] = emoji
-            action = 'changed'
-            selected = emoji
-    else:
+    if 'reactions' not in teacher or not teacher['reactions']:
+        teacher['reactions'] = {}
+        
+    current_reaction = request.cookies.get(cookie_name)
+    
+    if is_admin:
         teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
-        session[session_key] = emoji
         action = 'added'
         selected = emoji
+    else:
+        if current_reaction:
+            if current_reaction == emoji:
+                teacher['reactions'][emoji] = max(0, teacher['reactions'][emoji] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                teacher['reactions'][current_reaction] = max(0, teacher['reactions'].get(current_reaction, 1) - 1)
+                teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+                action = 'changed'
+                selected = emoji
+        else:
+            teacher['reactions'][emoji] = teacher['reactions'].get(emoji, 0) + 1
+            action = 'added'
+            selected = emoji
         
     if supabase:
         try:
@@ -431,13 +508,22 @@ def react_teacher(teacher_id):
         except Exception as e:
             print(f"Supabase error updating teacher react: {e}")
             
-    return jsonify({'success': True, 'reactions': teacher['reactions'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'reactions': teacher['reactions'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            
+    return response
 
 @app.route('/api/teacher/<int:teacher_id>/vote', methods=['POST'])
 def vote_teacher(teacher_id):
-    session_key = f'voted_teacher_{teacher_id}'
+    cookie_name = f'voted_teacher_{teacher_id}'
     data = request.json
     vote = data.get('vote')
+    is_admin = session.get('admin_logged_in', False)
     
     teacher = None
     if supabase:
@@ -451,27 +537,36 @@ def vote_teacher(teacher_id):
     if not teacher:
         teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
         
-    if not teacher or 'helpful_votes' not in teacher or vote not in teacher['helpful_votes']:
-        return jsonify({'success': False, 'error': 'Teacher or vote type not found'}), 404
+    if not teacher:
+        return jsonify({'success': False, 'error': 'Teacher not found'}), 404
         
-    current_vote = session.get(session_key)
-    if current_vote:
-        if current_vote == vote:
-            teacher['helpful_votes'][vote] = max(0, teacher['helpful_votes'][vote] - 1)
-            session.pop(session_key, None)
-            action = 'reverted'
-            selected = None
-        else:
-            teacher['helpful_votes'][current_vote] = max(0, teacher['helpful_votes'][current_vote] - 1)
-            teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
-            session[session_key] = vote
-            action = 'changed'
-            selected = vote
-    else:
+    if vote not in ['yes', 'no']:
+        return jsonify({'success': False, 'error': 'Invalid vote type'}), 400
+        
+    if 'helpful_votes' not in teacher or not teacher['helpful_votes']:
+        teacher['helpful_votes'] = {}
+        
+    current_vote = request.cookies.get(cookie_name)
+    
+    if is_admin:
         teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
-        session[session_key] = vote
         action = 'added'
         selected = vote
+    else:
+        if current_vote:
+            if current_vote == vote:
+                teacher['helpful_votes'][vote] = max(0, teacher['helpful_votes'][vote] - 1)
+                action = 'reverted'
+                selected = None
+            else:
+                teacher['helpful_votes'][current_vote] = max(0, teacher['helpful_votes'].get(current_vote, 1) - 1)
+                teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+                action = 'changed'
+                selected = vote
+        else:
+            teacher['helpful_votes'][vote] = teacher['helpful_votes'].get(vote, 0) + 1
+            action = 'added'
+            selected = vote
         
     if supabase:
         try:
@@ -479,7 +574,15 @@ def vote_teacher(teacher_id):
         except Exception as e:
             print(f"Supabase error updating teacher vote: {e}")
             
-    return jsonify({'success': True, 'helpful_votes': teacher['helpful_votes'], 'action': action, 'selected': selected})
+    response = jsonify({'success': True, 'helpful_votes': teacher['helpful_votes'], 'action': action, 'selected': selected})
+    
+    if not is_admin:
+        if action == 'reverted':
+            response.set_cookie(cookie_name, '', expires=0)
+        else:
+            response.set_cookie(cookie_name, vote, max_age=31536000)
+            
+    return response
 
 mock_users = []
 mock_evidence = []
@@ -639,11 +742,11 @@ for teacher in mock_teachers:
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
     if request.method == 'POST':
-        if 'user_logged_in' not in session:
+        if 'user_logged_in' not in session and 'admin_logged_in' not in session:
             flash('You must be logged in to post an experience.', 'error')
             return redirect(url_for('login'))
         
-        if not session.get('email_verified'):
+        if 'admin_logged_in' not in session and not session.get('email_verified'):
             flash('You must verify your email address before posting.', 'error')
             return redirect(url_for('experience'))
             
@@ -656,6 +759,19 @@ def experience():
         title = request.form.get('title')
         details = request.form.get('details')
         
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/experiences/{filename}"
+            else:
+                flash("Invalid file type. Only images and documents allowed.", "error")
+                return redirect(url_for('experience'))
+        
         new_exp = {
             "name": name if name else "Anonymous",
             "email": email,
@@ -664,6 +780,7 @@ def experience():
             "date": date,
             "title": title,
             "details": details,
+            "image_url": image_url,
             "is_verified": False
         }
         
@@ -692,7 +809,7 @@ def experience():
             query = supabase.table('experiences').select('*')
             if category_filter:
                 query = query.eq('category', category_filter)
-            response = query.order('id', desc=True).execute()
+            response = query.order('id', desc=True).range(0, 9).execute()
             experiences = response.data
             
             # Process timestamps for rendering
@@ -711,14 +828,56 @@ def experience():
                     exp['can_edit'] = False
         except Exception as e:
             print(f"Supabase error: {e}")
-            experiences = mock_experiences
+            experiences = []
     else:
+        experiences = mock_experiences
         if category_filter:
-            experiences = [e for e in mock_experiences if e.get('category') == category_filter]
-        else:
-            experiences = mock_experiences
-
+            experiences = [e for e in experiences if e['category'] == category_filter]
+        experiences = experiences[:10]
+            
     return render_template('experience.html', experiences=experiences, current_category=category_filter, categories=CATEGORIES)
+
+@app.route('/api/experiences/page/<int:page_num>')
+def api_experiences_page(page_num):
+    limit = 10
+    start = (page_num - 1) * limit
+    end = start + limit - 1
+    category_filter = request.args.get('category')
+    
+    experiences = []
+    if supabase:
+        try:
+            query = supabase.table('experiences').select('*')
+            if category_filter:
+                query = query.eq('category', category_filter)
+            response = query.order('id', desc=True).range(start, end).execute()
+            experiences = response.data
+            
+            from datetime import datetime, timezone
+            for exp in experiences:
+                if exp.get('created_at'):
+                    try:
+                        dt = datetime.fromisoformat(exp['created_at'].replace('Z', '+00:00'))
+                        now = datetime.now(timezone.utc)
+                        diff = now - dt
+                        exp['can_edit'] = diff.total_seconds() <= 900
+                    except:
+                        exp['can_edit'] = False
+                else:
+                    exp['can_edit'] = False
+        except Exception as e:
+            print(f"Supabase error: {e}")
+    else:
+        all_exps = mock_experiences
+        if category_filter:
+            all_exps = [e for e in all_exps if e['category'] == category_filter]
+        experiences = all_exps[start:end+1]
+        
+    html = ""
+    for exp in experiences:
+        html += render_template('partials/experience_card.html', exp=exp)
+        
+    return jsonify({'html': html})
 
 @app.route('/edit_experience/<int:exp_id>', methods=['POST'])
 def edit_experience(exp_id):
@@ -772,23 +931,35 @@ def edit_experience(exp_id):
 def policies():
     return render_template('policies.html')
 
+def get_page_content(page_id, default_content=""):
+    if supabase:
+        try:
+            res = supabase.table('pages').select('content').eq('id', page_id).execute()
+            if res.data:
+                return res.data[0]['content']
+        except:
+            pass
+    return default_content
+
 @app.route('/principals-note')
 def principals_note():
-    return render_template('principals_note.html')
-
-
+    content = get_page_content('principals_note', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('principals_note.html', content=content)
 
 @app.route('/hall-of-shame')
 def hall_of_shame():
-    return render_template('hall_of_shame.html')
+    content = get_page_content('hall_of_shame', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('hall_of_shame.html', content=content)
 
 @app.route('/fee-scam')
 def fee_scam():
-    return render_template('fee_scam.html')
+    content = get_page_content('fee_scam', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('fee_scam.html', content=content)
 
 @app.route('/vip-treatment')
 def vip_treatment():
-    return render_template('vip_treatment.html')
+    content = get_page_content('vip_treatment', '<div class="max-w-4xl mx-auto px-6 mb-20 text-center text-gray-500 font-bold uppercase tracking-widest">[ Content Redacted / Pending Verification ]</div>')
+    return render_template('vip_treatment.html', content=content)
 
 @app.route('/admin')
 @admin_required
@@ -842,7 +1013,97 @@ def admin():
         analytics['verified'] = sum(1 for e in experiences if e.get('is_verified'))
         analytics['pending'] = analytics['total'] - analytics['verified']
         
-    return render_template('admin.html', experiences=experiences, evidence=evidence_list, incidents=incidents_list, analytics=analytics)
+    pages_content = {}
+    if supabase:
+        try:
+            res = supabase.table('pages').select('*').execute()
+            if res.data:
+                for p in res.data:
+                    pages_content[p['id']] = p['content']
+        except:
+            pass
+
+    return render_template('admin.html', 
+                           experiences=experiences, 
+                           evidence=evidence_list,
+                           incidents=incidents_list,
+                           analytics=analytics,
+                           pages=pages_content,
+                           maintenance_mode=is_maintenance)
+
+@app.route('/admin/save-page', methods=['POST'])
+@admin_required
+def save_page():
+    page_id = request.form.get('page_id')
+    content = request.form.get('content')
+    
+    if not page_id or content is None:
+        flash('Invalid page data.', 'error')
+        return redirect(url_for('admin'))
+        
+    if supabase:
+        try:
+            # Upsert the page content
+            supabase.table('pages').upsert({
+                'id': page_id,
+                'content': content
+            }).execute()
+            flash(f'Page "{page_id}" updated successfully!', 'success')
+        except Exception as e:
+            flash(f'Error saving page: {e}', 'error')
+    else:
+        flash('Supabase not connected. Cannot save page.', 'error')
+        
+    return redirect(url_for('admin'))
+
+@app.route('/admin/edit-experience/<int:exp_id>', methods=['POST'])
+@admin_required
+def admin_edit_experience(exp_id):
+    if not supabase:
+        flash('Supabase not connected.', 'error')
+        return redirect(url_for('admin'))
+        
+    title = request.form.get('title')
+    details = request.form.get('details')
+    category = request.form.get('category')
+    
+    # Optional reactions manipulation
+    fake_helpful = request.form.get('fake_helpful', type=int)
+    fake_unhelpful = request.form.get('fake_unhelpful', type=int)
+    
+    r_like = request.form.get('react_like', type=int)
+    r_love = request.form.get('react_love', type=int)
+    r_haha = request.form.get('react_haha', type=int)
+    r_wow = request.form.get('react_wow', type=int)
+    r_sad = request.form.get('react_sad', type=int)
+    r_pray = request.form.get('react_pray', type=int)
+    
+    update_data = {
+        'title': title,
+        'details': details,
+        'category': category
+    }
+    
+    try:
+        if fake_helpful is not None and fake_unhelpful is not None:
+            update_data['helpful_votes'] = {'yes': fake_helpful, 'no': fake_unhelpful}
+            
+        if all(x is not None for x in [r_like, r_love, r_haha, r_wow, r_sad, r_pray]):
+            update_data['reactions'] = {
+                '👍': r_like,
+                '❤️': r_love,
+                '😂': r_haha,
+                '😮': r_wow,
+                '😢': r_sad,
+                '🙏': r_pray
+            }
+            
+        supabase.table('experiences').update(update_data).eq('id', exp_id).execute()
+        flash('Experience updated successfully.', 'success')
+    except Exception as e:
+        flash(f'Error updating experience: {e}', 'error')
+        
+    return redirect(url_for('admin'))
 
 @app.route('/admin/verify/<int:exp_id>', methods=['POST'])
 @admin_required
@@ -932,6 +1193,19 @@ def admin_add_experience():
     category = request.form.get('category')
     details = request.form.get('details')
     
+    image_url = ''
+    image_file = request.files.get('image')
+    if image_file and image_file.filename != '':
+        if allowed_file(image_file.filename):
+            filename = secure_filename(image_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+            os.makedirs(upload_folder, exist_ok=True)
+            image_file.save(os.path.join(upload_folder, filename))
+            image_url = f"/static/uploads/experiences/{filename}"
+        else:
+            flash("Invalid file type.", "error")
+            return redirect(url_for('admin'))
+    
     from datetime import datetime
     date_str = datetime.now().strftime("%Y-%m-%d")
     
@@ -943,6 +1217,7 @@ def admin_add_experience():
         "date": date_str,
         "title": title,
         "details": details,
+        "image_url": image_url,
         "is_verified": True
     }
     
@@ -966,8 +1241,20 @@ def upload_evidence():
     if request.method == 'POST':
         title = request.form.get('title')
         category = request.form.get('category')
-        image_url = request.form.get('image_url', '')
         description = request.form.get('description')
+        
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'evidence')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/evidence/{filename}"
+            else:
+                flash("Invalid file type.", "error")
+                return redirect(url_for('admin'))
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %d, %Y")
@@ -1017,7 +1304,21 @@ def add_timeline():
     if request.method == 'POST':
         title = request.form.get('title')
         status = request.form.get('status')
+        impact = request.form.get('impact', 'Medium')
         description = request.form.get('description')
+        
+        image_url = ''
+        image_file = request.files.get('image')
+        if image_file and image_file.filename != '':
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'incidents')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/incidents/{filename}"
+            else:
+                flash("Invalid file type.", "error")
+                return redirect(url_for('admin'))
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %Y")
@@ -1025,6 +1326,8 @@ def add_timeline():
         new_timeline = {
             "title": title,
             "status": status,
+            "impact": impact,
+            "image_url": image_url,
             "description": description,
             "date": date_str
         }
@@ -1148,6 +1451,55 @@ def toggle_maintenance():
     maintenance_cache['last_checked'] = 0
     return redirect(url_for('admin'))
 
+@app.route('/admin/export', methods=['GET'])
+@admin_required
+def export_database():
+    import json
+    from flask import Response
+    from datetime import datetime
+    
+    export_data = {
+        'experiences': [],
+        'teachers': [],
+        'evidence': [],
+        'incidents': [],
+        'pages': []
+    }
+    
+    if supabase:
+        try:
+            exp_res = supabase.table('experiences').select('*').execute()
+            export_data['experiences'] = exp_res.data if exp_res.data else []
+            
+            teach_res = supabase.table('teachers').select('*').execute()
+            export_data['teachers'] = teach_res.data if teach_res.data else []
+            
+            ev_res = supabase.table('evidence').select('*').execute()
+            export_data['evidence'] = ev_res.data if ev_res.data else []
+            
+            inc_res = supabase.table('incidents').select('*').execute()
+            export_data['incidents'] = inc_res.data if inc_res.data else []
+            
+            page_res = supabase.table('pages').select('*').execute()
+            export_data['pages'] = page_res.data if page_res.data else []
+        except Exception as e:
+            flash(f'Error exporting from Supabase: {str(e)}', 'error')
+            return redirect(url_for('admin'))
+    else:
+        export_data['experiences'] = mock_experiences
+        export_data['teachers'] = mock_teachers
+        export_data['evidence'] = mock_evidence
+        export_data['incidents'] = mock_timeline
+
+    json_data = json.dumps(export_data, indent=4)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    return Response(
+        json_data,
+        mimetype="application/json",
+        headers={"Content-disposition": f"attachment; filename=stx_archive_backup_{timestamp}.json"}
+    )
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -1261,6 +1613,128 @@ def logout():
             pass
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
+
+@app.route('/profile')
+def profile():
+    if 'user_logged_in' not in session:
+        flash('Please log in to view your profile.', 'error')
+        return redirect(url_for('login'))
+        
+    user_email = session.get('user_email')
+    user_experiences = []
+    
+    if supabase:
+        try:
+            res = supabase.table('experiences').select('*').eq('email', user_email).order('id', desc=True).execute()
+            user_experiences = res.data
+        except Exception as e:
+            flash(f"Error loading profile: {e}", "error")
+    else:
+        user_experiences = [e for e in mock_experiences if e.get('email') == user_email]
+        
+    stats = {
+        'total_posts': len(user_experiences),
+        'total_reactions': sum(sum(e.get('reactions', {}).values()) for e in user_experiences),
+        'total_helpful': sum(e.get('helpful_votes', {}).get('yes', 0) for e in user_experiences)
+    }
+        
+    return render_template('profile.html', experiences=user_experiences, stats=stats)
+
+@app.route('/api/experience/<int:exp_id>/comments', methods=['GET'])
+def get_comments(exp_id):
+    comments = []
+    if supabase:
+        try:
+            res = supabase.table('comments').select('*').eq('experience_id', exp_id).order('created_at', desc=False).execute()
+            comments = res.data
+        except Exception as e:
+            print(f"Error fetching comments: {e}")
+    else:
+        comments = [c for c in mock_comments if c.get('experience_id') == exp_id]
+        
+    return jsonify({'comments': comments})
+
+@app.route('/api/experience/<int:exp_id>/comment', methods=['POST'])
+def post_comment(exp_id):
+    if 'user_logged_in' not in session and 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    content = request.json.get('content')
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+        
+    if session.get('admin_logged_in'):
+        name = 'Admin'
+        email = 'admin@stxarchive.local'
+    else:
+        name = session.get('user_username') or session.get('user_email', 'Anonymous')
+        email = session.get('user_email')
+    
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).isoformat()
+    
+    new_comment = {
+        'experience_id': exp_id,
+        'name': name,
+        'email': email,
+        'content': content,
+        'created_at': now_iso
+    }
+    
+    if supabase:
+        try:
+            res = supabase.table('comments').insert(new_comment).execute()
+            return jsonify({'success': True, 'comment': res.data[0]})
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    else:
+        new_comment['id'] = len(mock_comments) + 1
+        mock_comments.append(new_comment)
+        return jsonify({'success': True, 'comment': new_comment})
+
+@app.route('/admin/export')
+def admin_export():
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    export_data = {
+        'experiences': [],
+        'teachers': [],
+        'evidence': [],
+        'comments': []
+    }
+    
+    if supabase:
+        try:
+            exp_res = supabase.table('experiences').select('*').execute()
+            export_data['experiences'] = exp_res.data
+            
+            teach_res = supabase.table('teachers').select('*').execute()
+            export_data['teachers'] = teach_res.data
+            
+            ev_res = supabase.table('evidence').select('*').execute()
+            export_data['evidence'] = ev_res.data
+            
+            com_res = supabase.table('comments').select('*').execute()
+            export_data['comments'] = com_res.data
+        except Exception as e:
+            print(f"Export Error: {e}")
+    else:
+        export_data['experiences'] = mock_experiences
+        export_data['teachers'] = mock_teachers
+        export_data['evidence'] = mock_evidence
+        export_data['comments'] = mock_comments
+
+    import json
+    response = app.response_class(
+        response=json.dumps(export_data, indent=4),
+        status=200,
+        mimetype='application/json'
+    )
+    from datetime import datetime
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    response.headers["Content-Disposition"] = f"attachment; filename=stx_archive_backup_{date_str}.json"
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
