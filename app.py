@@ -379,9 +379,9 @@ def react_experience(exp_id):
     
     if not is_admin:
         if action == 'reverted':
-            response.set_cookie(cookie_name, '', expires=0)
+            response.set_cookie(cookie_name, '', expires=0, path='/')
         else:
-            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            response.set_cookie(cookie_name, emoji, max_age=31536000, path='/')
             
     return response
 
@@ -445,9 +445,9 @@ def vote_experience(exp_id):
     
     if not is_admin:
         if action == 'reverted':
-            response.set_cookie(cookie_name, '', expires=0)
+            response.set_cookie(cookie_name, '', expires=0, path='/')
         else:
-            response.set_cookie(cookie_name, vote, max_age=31536000)
+            response.set_cookie(cookie_name, vote, max_age=31536000, path='/')
             
     return response
 
@@ -512,9 +512,9 @@ def react_teacher(teacher_id):
     
     if not is_admin:
         if action == 'reverted':
-            response.set_cookie(cookie_name, '', expires=0)
+            response.set_cookie(cookie_name, '', expires=0, path='/')
         else:
-            response.set_cookie(cookie_name, emoji, max_age=31536000)
+            response.set_cookie(cookie_name, emoji, max_age=31536000, path='/')
             
     return response
 
@@ -578,9 +578,9 @@ def vote_teacher(teacher_id):
     
     if not is_admin:
         if action == 'reverted':
-            response.set_cookie(cookie_name, '', expires=0)
+            response.set_cookie(cookie_name, '', expires=0, path='/')
         else:
-            response.set_cookie(cookie_name, vote, max_age=31536000)
+            response.set_cookie(cookie_name, vote, max_age=31536000, path='/')
             
     return response
 

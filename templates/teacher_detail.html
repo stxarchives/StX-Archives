@@ -30,7 +30,7 @@
             <div class="px-8 md:px-12 pb-8 border-t border-gray-100 dark:border-gray-800 pt-6">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div id="reactions-container-{{ teacher.id }}" class="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto">
-                        {% set reacted = session.get('reacted_teacher_' ~ teacher.id) %}
+                        {% set reacted = request.cookies.get('reacted_teacher_' ~ teacher.id) %}
                         {% if teacher.reactions %}
                             {% for emoji, count in teacher.reactions.items() %}
                             <button id="btn-react-{{ teacher.id }}-{{ loop.index }}" onclick="reactToTeacher({{ teacher.id }}, '{{ emoji }}')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors border whitespace-nowrap {% if reacted == emoji %}bg-gray-200 dark:bg-[#333] border-gray-400 dark:border-gray-500 opacity-100{% elif reacted and reacted != True %}bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 opacity-50 hover:opacity-100{% else %}bg-gray-50 dark:bg-[#1a1a1a] hover:bg-gray-100 dark:hover:bg-[#222] border-gray-200 dark:border-gray-700{% endif %}">
@@ -42,7 +42,7 @@
                     </div>
                     
                     <div class="flex items-center gap-3 shrink-0">
-                        {% set voted = session.get('voted_teacher_' ~ teacher.id) %}
+                        {% set voted = request.cookies.get('voted_teacher_' ~ teacher.id) %}
                         <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Helpful?</span>
                         {% if teacher.helpful_votes %}
                             <button id="btn-vote-yes-{{ teacher.id }}" onclick="voteTeacher({{ teacher.id }}, 'yes')" class="flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors border {% if voted == 'yes' %}bg-green-100 dark:bg-green-900/60 border-green-400 dark:border-green-600 text-green-800 dark:text-green-400 opacity-100{% elif voted == 'no' %}bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-gray-700 text-gray-400 opacity-50 hover:opacity-100{% else %}bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-700 dark:text-green-500 border-green-200 dark:border-green-800/50{% endif %}">
