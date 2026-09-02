@@ -12,6 +12,12 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "super-secret-key-change-in-produ
 url: str = os.getenv("SUPABASE_URL", "")
 key: str = os.getenv("SUPABASE_KEY", "")
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'mp4', 'mov'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Initialize Supabase only if credentials are provided
 supabase: Client = None
 if url and key:
@@ -140,6 +146,10 @@ def teachers():
         if 'user_logged_in' not in session and 'admin_logged_in' not in session:
             flash('You must be logged in to add a teacher.', 'error')
             return redirect(url_for('login'))
+            
+        if 'admin_logged_in' not in session and not session.get('email_verified'):
+            flash('You must verify your email address before adding a teacher.', 'error')
+            return redirect(url_for('teachers'))
             
         name = request.form.get('name')
         subject = request.form.get('subject')
@@ -752,11 +762,15 @@ def experience():
         image_url = ''
         image_file = request.files.get('image')
         if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
-            os.makedirs(upload_folder, exist_ok=True)
-            image_file.save(os.path.join(upload_folder, filename))
-            image_url = f"/static/uploads/experiences/{filename}"
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/experiences/{filename}"
+            else:
+                flash("Invalid file type. Only images and documents allowed.", "error")
+                return redirect(url_for('experience'))
         
         new_exp = {
             "name": name if name else "Anonymous",
@@ -1182,11 +1196,15 @@ def admin_add_experience():
     image_url = ''
     image_file = request.files.get('image')
     if image_file and image_file.filename != '':
-        filename = secure_filename(image_file.filename)
-        upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
-        os.makedirs(upload_folder, exist_ok=True)
-        image_file.save(os.path.join(upload_folder, filename))
-        image_url = f"/static/uploads/experiences/{filename}"
+        if allowed_file(image_file.filename):
+            filename = secure_filename(image_file.filename)
+            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'experiences')
+            os.makedirs(upload_folder, exist_ok=True)
+            image_file.save(os.path.join(upload_folder, filename))
+            image_url = f"/static/uploads/experiences/{filename}"
+        else:
+            flash("Invalid file type.", "error")
+            return redirect(url_for('admin'))
     
     from datetime import datetime
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -1228,11 +1246,15 @@ def upload_evidence():
         image_url = ''
         image_file = request.files.get('image')
         if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'evidence')
-            os.makedirs(upload_folder, exist_ok=True)
-            image_file.save(os.path.join(upload_folder, filename))
-            image_url = f"/static/uploads/evidence/{filename}"
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'evidence')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/evidence/{filename}"
+            else:
+                flash("Invalid file type.", "error")
+                return redirect(url_for('admin'))
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %d, %Y")
@@ -1288,11 +1310,15 @@ def add_timeline():
         image_url = ''
         image_file = request.files.get('image')
         if image_file and image_file.filename != '':
-            filename = secure_filename(image_file.filename)
-            upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'incidents')
-            os.makedirs(upload_folder, exist_ok=True)
-            image_file.save(os.path.join(upload_folder, filename))
-            image_url = f"/static/uploads/incidents/{filename}"
+            if allowed_file(image_file.filename):
+                filename = secure_filename(image_file.filename)
+                upload_folder = os.path.join(app.root_path, 'static', 'uploads', 'incidents')
+                os.makedirs(upload_folder, exist_ok=True)
+                image_file.save(os.path.join(upload_folder, filename))
+                image_url = f"/static/uploads/incidents/{filename}"
+            else:
+                flash("Invalid file type.", "error")
+                return redirect(url_for('admin'))
         
         from datetime import datetime
         date_str = datetime.now().strftime("%B %Y")
