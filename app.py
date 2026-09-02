@@ -1245,6 +1245,7 @@ def change_password():
 @app.route('/admin/toggle_maintenance', methods=['POST'])
 @admin_required
 def toggle_maintenance():
+    global maintenance_cache
     if supabase:
         try:
             res = supabase.table('site_settings').select('value').eq('key', 'maintenance_mode').execute()
@@ -1256,7 +1257,6 @@ def toggle_maintenance():
             else:
                 flash('Maintenance mode DISABLED. Site is live.', 'success')
             
-            global maintenance_cache
             maintenance_cache['last_checked'] = 0
             
             return redirect(url_for('admin'))
@@ -1272,7 +1272,6 @@ def toggle_maintenance():
             f.write('Maintenance mode active')
         flash('Maintenance mode ENABLED. Public site is offline.', 'error')
     
-    global maintenance_cache
     maintenance_cache['last_checked'] = 0
     return redirect(url_for('admin'))
 
