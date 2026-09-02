@@ -325,8 +325,15 @@ def react_experience(exp_id):
     if not exp:
         exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
         
-    if not exp or 'reactions' not in exp or emoji not in exp['reactions']:
-        return jsonify({'success': False, 'error': 'Experience or valid emoji not found'}), 404
+    if not exp:
+        return jsonify({'success': False, 'error': 'Experience not found'}), 404
+        
+    valid_emojis = ['🔥', '👏', '😂', '😢', '😡']
+    if emoji not in valid_emojis:
+        return jsonify({'success': False, 'error': 'Invalid emoji'}), 400
+        
+    if 'reactions' not in exp or not exp['reactions']:
+        exp['reactions'] = {}
         
     current_reaction = request.cookies.get(cookie_name)
     
@@ -385,8 +392,14 @@ def vote_experience(exp_id):
     if not exp:
         exp = next((e for e in mock_experiences if e['id'] == exp_id), None)
         
-    if not exp or 'helpful_votes' not in exp or vote not in exp['helpful_votes']:
-        return jsonify({'success': False, 'error': 'Experience or vote type not found'}), 404
+    if not exp:
+        return jsonify({'success': False, 'error': 'Experience not found'}), 404
+        
+    if vote not in ['yes', 'no']:
+        return jsonify({'success': False, 'error': 'Invalid vote type'}), 400
+        
+    if 'helpful_votes' not in exp or not exp['helpful_votes']:
+        exp['helpful_votes'] = {}
         
     current_vote = request.cookies.get(cookie_name)
     
@@ -445,8 +458,15 @@ def react_teacher(teacher_id):
     if not teacher:
         teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
         
-    if not teacher or 'reactions' not in teacher or emoji not in teacher['reactions']:
-        return jsonify({'success': False, 'error': 'Teacher or valid emoji not found'}), 404
+    if not teacher:
+        return jsonify({'success': False, 'error': 'Teacher not found'}), 404
+        
+    valid_emojis = ['🔥', '👏', '😂', '😢', '😡']
+    if emoji not in valid_emojis:
+        return jsonify({'success': False, 'error': 'Invalid emoji'}), 400
+        
+    if 'reactions' not in teacher or not teacher['reactions']:
+        teacher['reactions'] = {}
         
     current_reaction = request.cookies.get(cookie_name)
     
@@ -505,8 +525,14 @@ def vote_teacher(teacher_id):
     if not teacher:
         teacher = next((t for t in mock_teachers if t['id'] == teacher_id), None)
         
-    if not teacher or 'helpful_votes' not in teacher or vote not in teacher['helpful_votes']:
-        return jsonify({'success': False, 'error': 'Teacher or vote type not found'}), 404
+    if not teacher:
+        return jsonify({'success': False, 'error': 'Teacher not found'}), 404
+        
+    if vote not in ['yes', 'no']:
+        return jsonify({'success': False, 'error': 'Invalid vote type'}), 400
+        
+    if 'helpful_votes' not in teacher or not teacher['helpful_votes']:
+        teacher['helpful_votes'] = {}
         
     current_vote = request.cookies.get(cookie_name)
     
