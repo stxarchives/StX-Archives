@@ -277,10 +277,13 @@
         border-radius: 0.5rem !important;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
     }
-    .note-editor .note-dropdown-menu .dropdown-item {
+    .note-editor .note-dropdown-menu * {
         color: #d1d5db !important; /* text-gray-300 */
     }
-    .note-editor .note-dropdown-menu .dropdown-item:hover {
+    .note-editor .note-dropdown-menu a:hover,
+    .note-editor .note-dropdown-menu a:hover *,
+    .note-editor .note-dropdown-item:hover,
+    .note-editor .note-dropdown-item:hover * {
         background-color: #222 !important;
         color: #fff !important;
     }
