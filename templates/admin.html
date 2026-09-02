@@ -168,16 +168,15 @@
             <div class="lg:col-span-1 border-r border-gray-200 dark:border-gray-800 pr-6">
                 <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">Select Page</p>
                 <div class="space-y-2" id="cms-tabs">
-                    <button type="button" onclick="loadCMSPage('principals_note')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-airred text-white">Principal's Note</button>
-                    <button type="button" onclick="loadCMSPage('vip_treatment')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]">VIP Treatment</button>
+                    <button type="button" onclick="loadCMSPage('vip_treatment')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-airred text-white">VIP Treatment</button>
                     <button type="button" onclick="loadCMSPage('fee_scam')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]">Fee Scam</button>
                     <button type="button" onclick="loadCMSPage('hall_of_shame')" class="cms-tab w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222]">Hall of Shame</button>
                 </div>
             </div>
             <div class="lg:col-span-3">
                 <form action="{{ url_for('save_page') }}" method="POST">
-                    <input type="hidden" name="page_id" id="cms-page-id" value="principals_note">
-                    <textarea name="content" id="cms-editor" rows="12" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-sm font-mono focus:ring-airred focus:border-airred mb-4">{{ pages.get('principals_note', '') }}</textarea>
+                    <input type="hidden" name="page_id" id="cms-page-id" value="vip_treatment">
+                    <textarea name="content" id="cms-editor" rows="12" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-sm font-mono focus:ring-airred focus:border-airred mb-4">{{ pages.get('vip_treatment', '') }}</textarea>
                     <button type="submit" class="bg-airred hover:bg-airdarkred text-white font-bold py-3 px-8 rounded-xl transition-colors text-sm uppercase tracking-wider">Save Changes</button>
                 </form>
             </div>
@@ -187,7 +186,6 @@
 
 <script>
     const pagesData = {
-        'principals_note': `{{ pages.get('principals_note', '') | safe | replace('`', '\\`') }}`,
         'vip_treatment': `{{ pages.get('vip_treatment', '') | safe | replace('`', '\\`') }}`,
         'fee_scam': `{{ pages.get('fee_scam', '') | safe | replace('`', '\\`') }}`,
         'hall_of_shame': `{{ pages.get('hall_of_shame', '') | safe | replace('`', '\\`') }}`
