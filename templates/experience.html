@@ -43,11 +43,16 @@
     </div>
 
     <!-- Share Your Experience Form (Moved to Bottom) -->
-    <div class="mt-20 border-t border-gray-200 dark:border-gray-800 pt-16">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-4">Share Your Experience</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-400 font-medium">Submit a firsthand account or testimony related to school policies or incidents.</p>
-        </div>
+    <div class="mt-20 border-t border-gray-200 dark:border-gray-800 pt-16 flex flex-col items-center">
+        <button id="toggle-experience-btn" class="mb-8 px-8 py-4 bg-airred hover:bg-airdarkred text-white text-lg font-black uppercase tracking-widest rounded-xl shadow-xl hover:shadow-airred/30 transition-all transform hover:-translate-y-1">
+            Share Your Own Experience
+        </button>
+        
+        <div id="experience-form-container" class="hidden w-full transition-all">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-black text-airblack dark:text-white tracking-tighter mb-4">Share Your Experience</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400 font-medium">Submit a firsthand account or testimony related to school policies or incidents.</p>
+            </div>
 
         {% if (session.get('user_logged_in') and session.get('email_verified')) or session.get('admin_logged_in') %}
         <div class="bg-white dark:bg-[#151515] rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800 mb-20">
@@ -148,6 +153,7 @@
             </div>
         </div>
         {% endif %}
+        </div>
     </div>
 </div>
 
@@ -260,6 +266,20 @@
                 }
             } else {
                 alert(data.error || "An error occurred.");
+            }
+        });
+    }
+
+    const toggleBtn = document.getElementById('toggle-experience-btn');
+    const formContainer = document.getElementById('experience-form-container');
+    if (toggleBtn && formContainer) {
+        toggleBtn.addEventListener('click', () => {
+            formContainer.classList.toggle('hidden');
+            if(!formContainer.classList.contains('hidden')) {
+                toggleBtn.innerText = "Hide Form";
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                toggleBtn.innerText = "Share Your Own Experience";
             }
         });
     }
