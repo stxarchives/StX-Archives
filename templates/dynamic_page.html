@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | StX Archive{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-6 pt-10 pb-20">
+    <div class="mb-12 border-b border-gray-200 dark:border-gray-800 pb-6">
+        <h1 class="text-4xl md:text-5xl font-black text-airblack dark:text-white tracking-tighter">{{ title }}</h1>
+    </div>
+    
+    <div class="prose prose-lg dark:prose-invert max-w-none prose-headings:font-black prose-a:text-airred">
+        {{ content | safe }}
+    </div>
+</div>
+{% endblock %}
