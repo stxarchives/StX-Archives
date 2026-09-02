@@ -1255,6 +1255,10 @@ def toggle_maintenance():
                 flash('Maintenance mode ENABLED. Public site is offline.', 'error')
             else:
                 flash('Maintenance mode DISABLED. Site is live.', 'success')
+            
+            global maintenance_cache
+            maintenance_cache['last_checked'] = 0
+            
             return redirect(url_for('admin'))
         except Exception as e:
             flash(f'Error toggling maintenance mode: {str(e)}', 'error')
@@ -1267,6 +1271,9 @@ def toggle_maintenance():
         with open('.maintenance', 'w') as f:
             f.write('Maintenance mode active')
         flash('Maintenance mode ENABLED. Public site is offline.', 'error')
+    
+    global maintenance_cache
+    maintenance_cache['last_checked'] = 0
     return redirect(url_for('admin'))
 
 @app.route('/signup', methods=['GET', 'POST'])
