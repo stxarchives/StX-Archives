@@ -77,8 +77,6 @@ CATEGORIES = [
     "Other Incident"
 ]
 
-@app.route('/')
-
 @app.route('/p/<slug>')
 def dynamic_page(slug):
     content = ""
@@ -1313,9 +1311,6 @@ def delete_teacher(teacher_id):
         
     return redirect(url_for('admin'))
 
-@app.route('/admin/save-page', methods=['POST'])
-@admin_required
-
 @app.route('/admin/create-page', methods=['POST'])
 @admin_required
 def create_page():
@@ -1355,6 +1350,8 @@ def delete_page(slug):
             
     return redirect(url_for('admin'))
 
+@app.route('/admin/save-page', methods=['POST'])
+@admin_required
 def save_page():
     page_id = request.form.get('page_id')
     content = request.form.get('content')
