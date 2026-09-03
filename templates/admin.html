@@ -286,6 +286,9 @@
             <div class="lg:col-span-3" id="cms-editor-container">
                 <form action="{{ url_for('save_page') }}" method="POST">
                     <input type="hidden" name="page_id" id="cms-page-id" value="">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1 mt-2">Navbar Priority (0 = first, 1 = second, etc.)</label>
+                    <input type="number" name="priority" id="cms-priority" value="0" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-xl p-3 text-sm focus:ring-airred focus:border-airred mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">HTML Content</label>
                     <textarea name="content" id="cms-editor" rows="12" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-sm font-mono focus:ring-airred focus:border-airred mb-4" placeholder="Select a page to edit..."></textarea>
                     <button type="submit" id="cms-save-btn" class="hidden bg-airred hover:bg-airdarkred text-white font-bold py-3 px-8 rounded-xl transition-colors text-sm uppercase tracking-wider mt-4">Save Changes</button>
                 </form>
@@ -302,6 +305,10 @@
                             <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">URL Slug * (e.g. about-us)</label>
                             <input type="text" name="slug" required pattern="[a-zA-Z0-9-]+" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Navbar Priority (0 = first, 1 = second, etc.)</label>
+                        <input type="number" name="priority" value="0" class="w-full bg-gray-50 dark:bg-[#111] border border-gray-200 dark:border-gray-800 text-sm rounded-lg p-3">
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">HTML Content</label>
@@ -333,7 +340,9 @@
         }
         
         document.getElementById('cms-page-id').value = pageId;
-        document.getElementById('cms-editor').value = pageContents[pageId] || '';
+        const pageData = pageContents[pageId] || { content: '', priority: 0 };
+        document.getElementById('cms-editor').value = pageData.content || '';
+        document.getElementById('cms-priority').value = pageData.priority || 0;
         document.getElementById('cms-save-btn').classList.remove('hidden');
     }
     
