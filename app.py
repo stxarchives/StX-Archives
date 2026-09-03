@@ -889,21 +889,29 @@ def inject_dynamic_pages():
     pages = []
     if supabase:
         try:
-            res = supabase.table('pages').select('id, priority').execute()
+            res = supabase.table('pages').select('id').execute()
             if res.data:
                 for p in res.data:
                     title = p['id'].replace('-', ' ').title()
-                    pages.append({'id': p['id'], 'title': title, 'priority': p.get('priority') or 0})
+                    pages.append({'id': p['id'], 'title': title})
         except:
             pass
     
     if not pages:
         for page_id in mock_pages:
             title = page_id.replace('-', ' ').title()
-            pages.append({'id': page_id, 'title': title, 'priority': 0})
+            pages.append({'id': page_id, 'title': title})
             
-    # Sort pages by priority (lower number = higher priority/earlier in list)
-    pages.sort(key=lambda p: p.get('priority', 0))
+    # Sort pages to maintain original navbar order
+    order = ['policies', 'hall-of-shame', 'fee-scam', 'vip-treatment', 'principals-note']
+    
+    def get_order(p):
+        try:
+            return order.index(p['id'])
+        except ValueError:
+            return len(order)
+            
+    pages.sort(key=get_order)
             
     return dict(dynamic_pages=pages)
 
@@ -1322,19 +1330,13 @@ def admin():
             res = supabase.table('pages').select('*').execute()
             if res.data:
                 for p in res.data:
-                    pages_content[p['id']] = {
-                        'content': p['content'],
-                        'priority': p.get('priority', 0)
-                    }
+                    pages_content[p['id']] = p['content']
         except:
             pass
     
     if not pages_content:
         for slug, content in mock_pages.items():
-            pages_content[slug] = {
-                'content': content,
-                'priority': 0
-            }
+            pages_content[slug] = content
 
     return render_template('admin.html', 
                            experiences=experiences, 
@@ -1368,7 +1370,6 @@ def create_page():
     slug = request.form.get('slug').lower().replace(' ', '-')
     title = request.form.get('title')
     content = request.form.get('content')
-    priority = request.form.get('priority', type=int, default=0)
     
     if not slug or not title:
         flash('Slug and title are required', 'error')
@@ -1376,7 +1377,7 @@ def create_page():
         
     if supabase:
         try:
-            supabase.table('pages').insert({'id': slug, 'content': content, 'priority': priority}).execute()
+            supabase.table('pages').insert({'id': slug, 'content': content}).execute()
             flash(f'Page "{title}" created successfully!', 'success')
         except Exception as e:
             flash(f'Error creating page: {e}', 'error')
@@ -1407,7 +1408,6 @@ def delete_page(slug):
 def save_page():
     page_id = request.form.get('page_id')
     content = request.form.get('content')
-    priority = request.form.get('priority', type=int, default=0)
     
     if not page_id or content is None:
         flash('Invalid page data.', 'error')
@@ -1418,8 +1418,7 @@ def save_page():
             # Upsert the page content
             supabase.table('pages').upsert({
                 'id': page_id,
-                'content': content,
-                'priority': priority
+                'content': content
             }).execute()
             flash(f'Page "{page_id}" updated successfully!', 'success')
         except Exception as e:
