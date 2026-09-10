@@ -35,6 +35,13 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "super-secret-key-change-in-production")
 
+# ── Cookie / Session Security ──────────────────────────────────────────────────
+from datetime import timedelta
+app.config['SESSION_COOKIE_HTTPONLY'] = True          # JS cannot read session cookie
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'        # CSRF protection
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('FLASK_ENV') != 'development'  # HTTPS only in prod
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)  # 30-day "Remember Me"
+
 url: str = os.getenv("SUPABASE_URL", "")
 key: str = os.getenv("SUPABASE_KEY", "")
 
@@ -1937,6 +1944,7 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        remember_me = request.form.get('remember_me') == 'on'
 
         if supabase:
             try:
@@ -1945,6 +1953,7 @@ def login():
                     "password": password
                 })
                 user = response.user
+                session.permanent = remember_me   # persist 30 days if checked
                 session['user_logged_in'] = True
                 session['user_email'] = user.email
                 session['user_username'] = user.user_metadata.get('username', user.email.split('@')[0])
@@ -1963,6 +1972,7 @@ def login():
         else:
             user = next((u for u in mock_users if u['email'] == email and u['password'] == password), None)
             if user:
+                session.permanent = remember_me
                 session['user_logged_in'] = True
                 session['user_email'] = email
                 session['user_username'] = user.get('username', email.split('@')[0])
