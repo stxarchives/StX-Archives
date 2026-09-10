@@ -96,12 +96,27 @@
         </div>
         
         {% if session.get('user_logged_in') or session.get('admin_logged_in') %}
-        <form onsubmit="postComment(event, {{ exp.id }})" class="flex gap-2">
-            <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
-            <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+        <!-- Logged-in user: show toggle for anonymous -->
+        <form onsubmit="postComment(event, {{ exp.id }})" class="space-y-2">
+            <div class="flex gap-2">
+                <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
+                <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+            </div>
+            <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                <input type="checkbox" id="anon-toggle-{{ exp.id }}" class="w-4 h-4 text-airred rounded border-gray-300 dark:border-gray-700 focus:ring-airred" onchange="toggleNameField({{ exp.id }})">
+                <span>Post anonymously</span>
+            </label>
+            <input type="text" id="comment-name-{{ exp.id }}" placeholder="Your display name (optional)" value="{{ session.get('user_username', '') }}" class="hidden w-full bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
         </form>
         {% else %}
-        <p class="text-xs text-gray-500 font-medium bg-gray-50 dark:bg-[#111] p-3 rounded-lg border border-gray-200 dark:border-gray-800"><a href="{{ url_for('login') }}" class="text-airred hover:underline">Log in</a> to join the discussion.</p>
+        <!-- Guest user: show name field, anonymous by default -->
+        <form onsubmit="postComment(event, {{ exp.id }})" class="space-y-2">
+            <div class="flex gap-2">
+                <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
+                <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+            </div>
+            <input type="text" id="comment-name-{{ exp.id }}" placeholder="Your name (leave blank to post anonymously)" class="w-full bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
+        </form>
         {% endif %}
     </div>
 

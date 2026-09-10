@@ -2032,19 +2032,26 @@ def get_comments(exp_id):
 
 @app.route('/api/experience/<int:exp_id>/comment', methods=['POST'])
 def post_comment(exp_id):
-    if 'user_logged_in' not in session and 'admin_logged_in' not in session:
-        return jsonify({'error': 'Unauthorized'}), 403
-        
     content = request.json.get('content')
     if not content:
         return jsonify({'error': 'Content is required'}), 400
-        
+
+    # Determine the display name:
+    # 1. Use display_name from the request body if provided (guest or anon toggle)
+    # 2. Fall back to session username for logged-in users
+    # 3. Default to "Anonymous"
+    display_name = (request.json.get('display_name') or '').strip()
+    
     if session.get('admin_logged_in'):
-        name = 'Admin'
+        name = display_name or 'Admin'
         email = 'admin@stxarchive.local'
+    elif session.get('user_logged_in'):
+        name = display_name or session.get('user_username') or session.get('user_email', 'Anonymous')
+        email = session.get('user_email', '')
     else:
-        name = session.get('user_username') or session.get('user_email', 'Anonymous')
-        email = session.get('user_email')
+        # Guests can comment freely – name is optional
+        name = display_name or 'Anonymous'
+        email = ''
     
     from datetime import datetime, timezone
     now_iso = datetime.now(timezone.utc).isoformat()

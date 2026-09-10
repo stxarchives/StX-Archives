@@ -274,24 +274,43 @@
         async function postComment(e, expId) {
             e.preventDefault();
             const input = document.getElementById(`comment-input-${expId}`);
-            const content = input.value;
+            const content = input.value.trim();
             if (!content) return;
+            
+            // Read the optional display name
+            const nameInput = document.getElementById(`comment-name-${expId}`);
+            const display_name = nameInput ? nameInput.value.trim() : '';
             
             try {
                 const res = await fetch(`/api/experience/${expId}/comment`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({content})
+                    body: JSON.stringify({content, display_name})
                 });
                 const data = await res.json();
                 if (data.success) {
                     input.value = '';
+                    if (nameInput) nameInput.value = nameInput.dataset.defaultVal || '';
                     loadComments(expId);
                 } else {
                     alert('Error: ' + data.error);
                 }
             } catch (err) {
                 alert('Failed to post comment.');
+            }
+        }
+        
+        function toggleNameField(expId) {
+            const checkbox = document.getElementById(`anon-toggle-${expId}`);
+            const nameInput = document.getElementById(`comment-name-${expId}`);
+            if (!nameInput) return;
+            if (checkbox && checkbox.checked) {
+                // Anonymous: hide the name field and blank it
+                nameInput.classList.add('hidden');
+                nameInput.value = '';
+            } else {
+                // Identity: show the name field
+                nameInput.classList.remove('hidden');
             }
         }
     </script>
