@@ -2036,13 +2036,14 @@ def post_comment(exp_id):
     if not content:
         return jsonify({'error': 'Content is required'}), 400
 
-    # Determine the display name:
-    # 1. Use display_name from the request body if provided (guest or anon toggle)
-    # 2. Fall back to session username for logged-in users
-    # 3. Default to "Anonymous"
+    is_anonymous = request.json.get('is_anonymous', False)
     display_name = (request.json.get('display_name') or '').strip()
-    
-    if session.get('admin_logged_in'):
+
+    # If the user explicitly chose to post anonymously, always use "Anonymous"
+    if is_anonymous:
+        name = 'Anonymous'
+        email = ''
+    elif session.get('admin_logged_in'):
         name = display_name or 'Admin'
         email = 'admin@stxarchive.local'
     elif session.get('user_logged_in'):

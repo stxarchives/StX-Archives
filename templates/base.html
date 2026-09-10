@@ -277,20 +277,23 @@
             const content = input.value.trim();
             if (!content) return;
             
-            // Read the optional display name
+            // Check if the anonymous checkbox is ticked
+            const anonCheckbox = document.getElementById(`anon-toggle-${expId}`);
+            const is_anonymous = anonCheckbox ? anonCheckbox.checked : false;
+            
+            // Read the optional display name (only relevant when NOT anonymous)
             const nameInput = document.getElementById(`comment-name-${expId}`);
-            const display_name = nameInput ? nameInput.value.trim() : '';
+            const display_name = (nameInput && !is_anonymous) ? nameInput.value.trim() : '';
             
             try {
                 const res = await fetch(`/api/experience/${expId}/comment`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({content, display_name})
+                    body: JSON.stringify({content, display_name, is_anonymous})
                 });
                 const data = await res.json();
                 if (data.success) {
                     input.value = '';
-                    if (nameInput) nameInput.value = nameInput.dataset.defaultVal || '';
                     loadComments(expId);
                 } else {
                     alert('Error: ' + data.error);
