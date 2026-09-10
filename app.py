@@ -2049,6 +2049,8 @@ def post_comment(exp_id):
     is_anonymous = request.json.get('is_anonymous', False)
     display_name = (request.json.get('display_name') or '').strip()
 
+    parent_id = request.json.get('parent_id')  # None for top-level comments
+
     # If the user explicitly chose to post anonymously, always use "Anonymous"
     if is_anonymous:
         name = 'Anonymous'
@@ -2060,7 +2062,7 @@ def post_comment(exp_id):
         name = display_name or session.get('user_username') or session.get('user_email', 'Anonymous')
         email = session.get('user_email', '')
     else:
-        # Guests can comment freely – name is optional
+        # Guests can comment freely - name is optional
         name = display_name or 'Anonymous'
         email = ''
     
@@ -2074,6 +2076,8 @@ def post_comment(exp_id):
         'content': content,
         'created_at': now_iso
     }
+    if parent_id:
+        new_comment['parent_id'] = parent_id
     
     if supabase:
         try:
@@ -2085,6 +2089,32 @@ def post_comment(exp_id):
         new_comment['id'] = len(mock_comments) + 1
         mock_comments.append(new_comment)
         return jsonify({'success': True, 'comment': new_comment})
+
+@app.route('/api/experience/<int:exp_id>/commenters', methods=['GET'])
+def get_commenters(exp_id):
+    """Return unique commenter names for @mention autocomplete."""
+    names = []
+    if supabase:
+        try:
+            res = supabase.table('comments').select('name').eq('experience_id', exp_id).execute()
+            if res.data:
+                seen = set()
+                for c in res.data:
+                    n = c.get('name', '')
+                    if n and n != 'Anonymous' and n not in seen:
+                        seen.add(n)
+                        names.append(n)
+        except Exception as e:
+            print(f"Error fetching commenters: {e}")
+    else:
+        seen = set()
+        for c in mock_comments:
+            if c.get('experience_id') == exp_id:
+                n = c.get('name', '')
+                if n and n != 'Anonymous' and n not in seen:
+                    seen.add(n)
+                    names.append(n)
+    return jsonify({'commenters': names})
 
 @app.route('/admin/export')
 def admin_export():

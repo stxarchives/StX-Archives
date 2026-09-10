@@ -260,15 +260,46 @@
                 const res = await fetch(`/api/experience/${expId}/comments`);
                 const data = await res.json();
                 if (data.comments && data.comments.length > 0) {
-                    list.innerHTML = data.comments.map(c => `
-                        <div class="bg-gray-50 dark:bg-[#111] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">${c.name}</span>
-                                <span class="text-[10px] text-gray-500 font-medium">${new Date(c.created_at).toLocaleString()}</span>
+                    // Build thread map: top-level comments + their replies
+                    const topLevel = data.comments.filter(c => !c.parent_id);
+                    const replies = data.comments.filter(c => c.parent_id);
+                    const replyMap = {};
+                    replies.forEach(r => {
+                        if (!replyMap[r.parent_id]) replyMap[r.parent_id] = [];
+                        replyMap[r.parent_id].push(r);
+                    });
+
+                    function renderMentions(text) {
+                        return text.replace(/@(\S+)/g, '<span class="text-airred font-bold">@$1</span>');
+                    }
+
+                    function renderComment(c, isReply) {
+                        const replyBtn = `<button onclick="startReply(${expId}, ${c.id}, '${c.name.replace(/'/g, "\\'")}')" class="text-[10px] text-gray-400 hover:text-airred font-bold uppercase tracking-widest ml-2 transition-colors">↩ Reply</button>`;
+                        const indent = isReply ? 'ml-6 border-l-2 border-airred/30 pl-3' : '';
+                        return `
+                            <div class="bg-gray-50 dark:bg-[#111] p-3 rounded-xl border border-gray-200 dark:border-gray-800 ${indent}">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">${c.name}</span>
+                                        ${!isReply ? replyBtn : ''}
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 font-medium">${new Date(c.created_at).toLocaleString()}</span>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">${renderMentions(c.content)}</p>
                             </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">${c.content}</p>
-                        </div>
-                    `).join('');
+                        `;
+                    }
+
+                    let html = '';
+                    topLevel.forEach(c => {
+                        html += renderComment(c, false);
+                        if (replyMap[c.id]) {
+                            replyMap[c.id].forEach(r => {
+                                html += renderComment(r, true);
+                            });
+                        }
+                    });
+                    list.innerHTML = html;
                 } else {
                     list.innerHTML = '<div class="text-center text-xs text-gray-500 font-medium py-4">No comments yet. Be the first to discuss!</div>';
                 }
@@ -276,30 +307,62 @@
                 list.innerHTML = '<div class="text-center text-xs text-red-500 font-medium py-4">Failed to load comments.</div>';
             }
         }
-        
+
+        function startReply(expId, parentId, parentName) {
+            // Store parent id
+            const parentInput = document.getElementById(`comment-parent-id-${expId}`);
+            if (parentInput) parentInput.value = parentId;
+
+            // Update reply indicator
+            const indicator = document.getElementById(`reply-indicator-${expId}`);
+            if (indicator) {
+                indicator.classList.remove('hidden');
+                const label = document.getElementById(`reply-indicator-label-${expId}`);
+                if (label) label.textContent = `Replying to @${parentName}`;
+            }
+
+            // Pre-fill comment input
+            const input = document.getElementById(`comment-input-${expId}`);
+            if (input) {
+                input.value = `@${parentName} `;
+                input.focus();
+            }
+        }
+
+        function cancelReply(expId) {
+            const parentInput = document.getElementById(`comment-parent-id-${expId}`);
+            if (parentInput) parentInput.value = '';
+            const indicator = document.getElementById(`reply-indicator-${expId}`);
+            if (indicator) indicator.classList.add('hidden');
+            const input = document.getElementById(`comment-input-${expId}`);
+            if (input) input.value = '';
+        }
+
         async function postComment(e, expId) {
             e.preventDefault();
             const input = document.getElementById(`comment-input-${expId}`);
             const content = input.value.trim();
             if (!content) return;
-            
-            // Check if the anonymous checkbox is ticked
+
             const anonCheckbox = document.getElementById(`anon-toggle-${expId}`);
             const is_anonymous = anonCheckbox ? anonCheckbox.checked : false;
-            
-            // Read the optional display name (only relevant when NOT anonymous)
+
             const nameInput = document.getElementById(`comment-name-${expId}`);
             const display_name = (nameInput && !is_anonymous) ? nameInput.value.trim() : '';
-            
+
+            const parentInput = document.getElementById(`comment-parent-id-${expId}`);
+            const parent_id = parentInput && parentInput.value ? parseInt(parentInput.value) : null;
+
             try {
                 const res = await fetch(`/api/experience/${expId}/comment`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({content, display_name, is_anonymous})
+                    body: JSON.stringify({content, display_name, is_anonymous, parent_id})
                 });
                 const data = await res.json();
                 if (data.success) {
                     input.value = '';
+                    cancelReply(expId);
                     loadComments(expId);
                 } else {
                     alert('Error: ' + data.error);
@@ -308,19 +371,70 @@
                 alert('Failed to post comment.');
             }
         }
-        
+
         function toggleNameField(expId) {
             const checkbox = document.getElementById(`anon-toggle-${expId}`);
             const nameInput = document.getElementById(`comment-name-${expId}`);
             if (!nameInput) return;
             if (checkbox && checkbox.checked) {
-                // Anonymous: hide the name field and blank it
                 nameInput.classList.add('hidden');
                 nameInput.value = '';
             } else {
-                // Identity: show the name field
                 nameInput.classList.remove('hidden');
             }
+        }
+
+        // ── @mention autocomplete ─────────────────────────────────────────────
+        let mentionDropdownActive = false;
+
+        function setupMentionAutocomplete(expId) {
+            const input = document.getElementById(`comment-input-${expId}`);
+            const dropdown = document.getElementById(`mention-dropdown-${expId}`);
+            if (!input || !dropdown) return;
+
+            input.addEventListener('input', async () => {
+                const val = input.value;
+                const atIdx = val.lastIndexOf('@');
+                if (atIdx === -1) { dropdown.classList.add('hidden'); return; }
+                const query = val.slice(atIdx + 1).toLowerCase();
+
+                // Fetch commenters list (cached per experience)
+                if (!input._commenters) {
+                    try {
+                        const r = await fetch(`/api/experience/${expId}/commenters`);
+                        const d = await r.json();
+                        input._commenters = d.commenters || [];
+                    } catch { input._commenters = []; }
+                }
+
+                const matches = input._commenters.filter(n => n.toLowerCase().startsWith(query));
+                if (matches.length === 0) { dropdown.classList.add('hidden'); return; }
+
+                dropdown.innerHTML = matches.map(n =>
+                    `<button type="button" class="w-full text-left px-3 py-2 text-sm font-bold hover:bg-airred hover:text-white transition-colors rounded-lg" onclick="insertMention(${expId}, '${n.replace(/'/g,"\\'")}')">@${n}</button>`
+                ).join('');
+                dropdown.classList.remove('hidden');
+                mentionDropdownActive = true;
+            });
+
+            // Close dropdown on click outside
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target) && e.target !== input) {
+                    dropdown.classList.add('hidden');
+                    mentionDropdownActive = false;
+                }
+            });
+        }
+
+        function insertMention(expId, name) {
+            const input = document.getElementById(`comment-input-${expId}`);
+            const dropdown = document.getElementById(`mention-dropdown-${expId}`);
+            if (!input) return;
+            const val = input.value;
+            const atIdx = val.lastIndexOf('@');
+            input.value = val.slice(0, atIdx) + '@' + name + ' ';
+            dropdown.classList.add('hidden');
+            input.focus();
         }
     </script>
     <!-- Toast Notification Container -->

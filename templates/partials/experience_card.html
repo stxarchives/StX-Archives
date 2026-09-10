@@ -96,11 +96,22 @@
         </div>
         
         {% if session.get('user_logged_in') or session.get('admin_logged_in') %}
-        <!-- Logged-in user: show toggle for anonymous -->
+        <!-- Logged-in user: show toggle for anonymous + reply support -->
         <form onsubmit="postComment(event, {{ exp.id }})" class="space-y-2">
-            <div class="flex gap-2">
-                <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
-                <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+            <!-- Hidden parent_id for replies -->
+            <input type="hidden" id="comment-parent-id-{{ exp.id }}" value="">
+            <!-- Reply indicator bar -->
+            <div id="reply-indicator-{{ exp.id }}" class="hidden flex items-center justify-between bg-airred/10 border border-airred/30 text-airred text-xs font-bold px-3 py-1.5 rounded-lg">
+                <span id="reply-indicator-label-{{ exp.id }}">Replying to...</span>
+                <button type="button" onclick="cancelReply({{ exp.id }})" class="ml-2 text-airred hover:text-airdarkred font-black">✕</button>
+            </div>
+            <!-- Mention dropdown -->
+            <div class="relative">
+                <div id="mention-dropdown-{{ exp.id }}" class="hidden absolute bottom-full mb-1 left-0 right-0 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 p-1 max-h-40 overflow-y-auto"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion... (type @ to mention)" class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
+                    <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+                </div>
             </div>
             <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                 <input type="checkbox" id="anon-toggle-{{ exp.id }}" class="w-4 h-4 text-airred rounded border-gray-300 dark:border-gray-700 focus:ring-airred" onchange="toggleNameField({{ exp.id }})">
@@ -109,15 +120,24 @@
             <input type="text" id="comment-name-{{ exp.id }}" placeholder="Your display name (optional)" value="{{ session.get('user_username', '') }}" class="hidden w-full bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
         </form>
         {% else %}
-        <!-- Guest user: show name field, anonymous by default -->
+        <!-- Guest user: show name field, anonymous by default + reply support -->
         <form onsubmit="postComment(event, {{ exp.id }})" class="space-y-2">
-            <div class="flex gap-2">
-                <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion..." class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
-                <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+            <input type="hidden" id="comment-parent-id-{{ exp.id }}" value="">
+            <div id="reply-indicator-{{ exp.id }}" class="hidden flex items-center justify-between bg-airred/10 border border-airred/30 text-airred text-xs font-bold px-3 py-1.5 rounded-lg">
+                <span id="reply-indicator-label-{{ exp.id }}">Replying to...</span>
+                <button type="button" onclick="cancelReply({{ exp.id }})" class="ml-2 text-airred hover:text-airdarkred font-black">✕</button>
+            </div>
+            <div class="relative">
+                <div id="mention-dropdown-{{ exp.id }}" class="hidden absolute bottom-full mb-1 left-0 right-0 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 p-1 max-h-40 overflow-y-auto"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="comment-input-{{ exp.id }}" required placeholder="Add to the discussion... (type @ to mention)" class="flex-1 bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
+                    <button type="submit" class="px-4 py-2 bg-airred hover:bg-airdarkred text-white text-sm font-bold uppercase tracking-widest rounded-xl shadow-lg transition-all">Post</button>
+                </div>
             </div>
             <input type="text" id="comment-name-{{ exp.id }}" placeholder="Your name (leave blank to post anonymously)" class="w-full bg-gray-50 dark:bg-[#151515] border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 rounded-xl focus:ring-airred focus:border-airred block p-3 transition-colors text-sm shadow-inner">
         </form>
         {% endif %}
+        <script>setupMentionAutocomplete({{ exp.id }});</script>
     </div>
 
     <!-- Hidden Edit Form -->
