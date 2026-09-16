@@ -32,11 +32,24 @@
                 </button>
             </form>
         </div>
-        <div class="bg-gray-50 dark:bg-[#111] px-10 py-5 border-t border-gray-100 dark:border-gray-800 text-center">
+        <div class="bg-gray-50 dark:bg-[#111] px-10 py-5 border-t border-gray-100 dark:border-gray-800 text-center flex flex-col gap-3">
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Don't have an account? <a href="{{ url_for('signup') }}" class="text-airred hover:text-airdarkred font-bold transition-colors">Sign up here</a>
             </p>
+            <button onclick="playPrank()" class="text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 uppercase tracking-widest transition-colors w-max mx-auto">
+                Login as Admin
+            </button>
         </div>
     </div>
 </div>
+
+<audio id="prankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
+
+<script>
+    function playPrank() {
+        const audio = document.getElementById('prankAudio');
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log('Audio playback failed:', e));
+    }
+</script>
 {% endblock %}
