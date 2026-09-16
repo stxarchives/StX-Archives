@@ -122,6 +122,7 @@
             video.classList.remove('hidden');
             video.src = url;
             video.load();
+            video.play().catch(e => console.log('Autoplay prevented', e));
             // Hide the text overlay while video plays
             if (overlay) overlay.classList.add('hidden');
         } else {

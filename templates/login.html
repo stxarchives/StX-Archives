@@ -27,8 +27,11 @@
                     <label for="remember_me" class="ml-2 text-sm font-medium text-gray-600 dark:text-gray-400 cursor-pointer">Remember me for 30 days</label>
                 </div>
                 
-                <button type="submit" class="w-full bg-airred hover:bg-airdarkred text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-airred/30 transition-all uppercase tracking-wider text-sm">
+                <button type="submit" class="w-full bg-airred hover:bg-airdarkred text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-airred/30 transition-all uppercase tracking-wider text-sm mb-4">
                     Log In
+                </button>
+                <button type="button" onclick="playPrank()" class="w-full bg-gray-800 hover:bg-gray-900 dark:bg-[#222] dark:hover:bg-[#333] border border-transparent dark:border-gray-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all uppercase tracking-wider text-sm">
+                    Login as Admin
                 </button>
             </form>
         </div>
@@ -36,9 +39,6 @@
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Don't have an account? <a href="{{ url_for('signup') }}" class="text-airred hover:text-airdarkred font-bold transition-colors">Sign up here</a>
             </p>
-            <button onclick="playPrank()" class="text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 uppercase tracking-widest transition-colors w-max mx-auto">
-                Login as Admin
-            </button>
         </div>
     </div>
 </div>
