@@ -516,20 +516,20 @@
         <div class="py-2 flex flex-col">
             <!-- Primary Options -->
             <a href="/" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                <span>🏠</span> Home
+                Home
             </a>
             <a href="/teachers" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                <span>🏫</span> Teachers Directory
+                Teachers Directory
             </a>
             <a href="/hall-of-shame" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                <span>🎭</span> Hall of Shame
+                Hall of Shame
             </a>
             <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
             <button onclick="document.getElementById('theme-toggle').click(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
-                <span>🌙</span> Toggle Dark Mode
+                Toggle Dark Mode
             </button>
-            <button onclick="navigator.clipboard.writeText(window.location.href); showToast('success', 'Link copied!'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
-                <span>🔗</span> Copy Page Link
+            <button onclick="copyToClipboard(window.location.href); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
+                Copy Page Link
             </button>
             
             <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
@@ -543,10 +543,10 @@
             <!-- Secondary Options (Hidden by default) -->
             <div id="context-more-options" class="hidden flex flex-col bg-gray-50 dark:bg-[#111]">
                 <button onclick="playGlobalPrank(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-airred font-bold transition-colors">
-                    <span>🕵️</span> Login as Admin
+                    Login as Admin
                 </button>
                 <button onclick="alert('Connection to school mainframe established... Error 404: Brain not found.'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-green-600 font-bold transition-colors">
-                    <span>💻</span> Hack School Database
+                    Hack School Database
                 </button>
             </div>
         </div>
@@ -554,6 +554,28 @@
     <audio id="globalPrankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
 
     <script>
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => showToast('success', 'Link copied!'));
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('success', 'Link copied!');
+                } catch (err) {
+                    showToast('error', 'Failed to copy link');
+                }
+                textArea.remove();
+            }
+        }
+
         function playGlobalPrank() {
             const audio = document.getElementById('globalPrankAudio');
             audio.currentTime = 0;
