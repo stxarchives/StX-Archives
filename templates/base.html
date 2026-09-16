@@ -510,5 +510,100 @@
             });
         }
     </script>
+
+    <!-- Custom Right Click Context Menu -->
+    <div id="custom-context-menu" class="fixed bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl overflow-hidden hidden z-[100] w-64 text-sm font-medium transition-opacity duration-100 opacity-0" style="left: 0px; top: 0px;">
+        <div class="py-2 flex flex-col">
+            <!-- Primary Options -->
+            <a href="/" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
+                <span>🏠</span> Home
+            </a>
+            <a href="/teachers" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
+                <span>🏫</span> Teachers Directory
+            </a>
+            <a href="/hall-of-shame" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
+                <span>🎭</span> Hall of Shame
+            </a>
+            <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
+            <button onclick="toggleDarkMode(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
+                <span>🌙</span> Toggle Dark Mode
+            </button>
+            <button onclick="navigator.clipboard.writeText(window.location.href); showToast('success', 'Link copied!'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
+                <span>🔗</span> Copy Page Link
+            </button>
+            
+            <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
+            
+            <!-- Show More Button -->
+            <button onclick="document.getElementById('context-more-options').classList.toggle('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between text-left w-full text-gray-500 dark:text-gray-400 transition-colors">
+                <span>Show more options</span>
+                <span class="text-xs">▼</span>
+            </button>
+
+            <!-- Secondary Options (Hidden by default) -->
+            <div id="context-more-options" class="hidden flex flex-col bg-gray-50 dark:bg-[#111]">
+                <button onclick="playGlobalPrank(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-airred font-bold transition-colors">
+                    <span>🕵️</span> Login as Admin
+                </button>
+                <button onclick="alert('Connection to school mainframe established... Error 404: Brain not found.'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-green-600 font-bold transition-colors">
+                    <span>💻</span> Hack School Database
+                </button>
+            </div>
+        </div>
+    </div>
+    <audio id="globalPrankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
+
+    <script>
+        function playGlobalPrank() {
+            const audio = document.getElementById('globalPrankAudio');
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log('Audio playback failed:', e));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menu = document.getElementById('custom-context-menu');
+            const moreOptions = document.getElementById('context-more-options');
+
+            document.addEventListener('contextmenu', (e) => {
+                // Allow default context menu on inputs so users can paste/copy text
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                
+                e.preventDefault();
+                
+                // Hide more options by default when opening
+                moreOptions.classList.add('hidden');
+                
+                menu.classList.remove('hidden');
+                menu.classList.remove('opacity-0');
+                
+                // Keep menu on screen
+                let x = e.clientX;
+                let y = e.clientY;
+                const menuWidth = 256; // w-64 is 16rem = 256px
+                const menuHeight = menu.offsetHeight;
+                
+                if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 5;
+                if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 5;
+                
+                menu.style.left = `${x}px`;
+                menu.style.top = `${y}px`;
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target)) {
+                    menu.classList.add('opacity-0');
+                    setTimeout(() => menu.classList.add('hidden'), 100);
+                }
+            });
+            
+            // Hide on scroll
+            window.addEventListener('scroll', () => {
+                if (!menu.classList.contains('hidden')) {
+                    menu.classList.add('opacity-0');
+                    setTimeout(() => menu.classList.add('hidden'), 100);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
