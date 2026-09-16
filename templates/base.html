@@ -575,16 +575,12 @@
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                             <span>Login as Admin</span>
                         </button>
-                        <button onclick="alert('Connection to school mainframe established... Error 404: Brain not found.'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-2.5 text-left w-full text-green-600 font-medium transition-colors cursor-default">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-                            <span>Hack School Database</span>
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <audio id="globalPrankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
+    <audio id="globalPrankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto" loop></audio>
 
     <script>
         function showSimpleToast(message) {
@@ -639,6 +635,7 @@
             try {
                 const audio = new Audio("{{ url_for('static', filename='music/prank.mp3') }}");
                 audio.volume = 1.0;
+                audio.loop = true;
                 audio.play().catch(e => {
                     console.log('Dynamic audio failed, trying DOM audio:', e);
                     const domAudio = document.getElementById('globalPrankAudio');

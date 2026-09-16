@@ -43,13 +43,26 @@
     </div>
 </div>
 
-<audio id="prankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
+<!-- Prank Audio (Hidden) -->
+<audio id="prankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto" loop></audio>
 
 <script>
     function playPrank() {
-        const audio = document.getElementById('prankAudio');
-        audio.currentTime = 0;
-        audio.play().catch(e => console.log('Audio playback failed:', e));
+        try {
+            const audio = document.getElementById('prankAudio');
+            audio.volume = 1.0;
+            audio.loop = true;
+            audio.currentTime = 0;
+            audio.play().catch(e => {
+                console.log('Audio playback failed:', e);
+                // Fallback for strict browsers
+                const newAudio = new Audio("{{ url_for('static', filename='music/prank.mp3') }}");
+                newAudio.loop = true;
+                newAudio.play();
+            });
+        } catch (err) {
+            console.error(err);
+        }
     }
 </script>
 {% endblock %}
