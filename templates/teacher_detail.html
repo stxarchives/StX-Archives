@@ -15,8 +15,10 @@
         <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-800">
         <!-- Main media viewer: swaps between img and video based on selection -->
         <div class="w-full h-96 bg-gray-200 dark:bg-gray-700 relative">
-            <img id="main-teacher-img" src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top transition-opacity duration-300">
-            <video id="main-teacher-video" src="" controls class="w-full h-full object-contain hidden"></video>
+            <img id="main-teacher-img" src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top transition-opacity duration-300 select-none" draggable="false" oncontextmenu="return false">
+            <!-- Transparent shield overlay prevents right-click save on image -->
+            <div class="absolute inset-0 z-10" oncontextmenu="return false" style="background:transparent;"></div>
+            <video id="main-teacher-video" src="" controls controlsList="nodownload nofullscreen" disablePictureInPicture class="w-full h-full object-contain hidden" oncontextmenu="return false"></video>
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pointer-events-none" id="main-overlay">
                 <div class="p-8 w-full">
                     <p class="text-airred font-bold uppercase tracking-wider text-sm mb-2">{{ teacher.subject }}</p>
@@ -42,7 +44,7 @@
                     </div>
                 </div>
                 {% else %}
-                <img src="{{ url }}" class="w-full h-full object-cover object-top pointer-events-none">
+                <img src="{{ url }}" class="w-full h-full object-cover object-top pointer-events-none select-none" draggable="false" oncontextmenu="return false">
                 {% endif %}
             </button>
             {% endfor %}
@@ -88,6 +90,28 @@
 </div>
 
 <script>
+    // ── Download Prevention ────────────────────────────────────────────────────
+    // Block right-click on all images and videos
+    document.addEventListener('contextmenu', function(e) {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+            return false;
+        }
+    });
+    // Block drag-to-save on images
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+            e.preventDefault();
+        }
+    });
+    // Block Ctrl+S / Cmd+S save shortcut
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+        }
+    });
+    // ──────────────────────────────────────────────────────────────────────────
+
     function switchMedia(url, isVideo) {
         const img = document.getElementById('main-teacher-img');
         const video = document.getElementById('main-teacher-video');
