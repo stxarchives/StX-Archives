@@ -636,9 +636,20 @@
         }
 
         function playGlobalPrank() {
-            const audio = document.getElementById('globalPrankAudio');
-            audio.currentTime = 0;
-            audio.play().catch(e => console.log('Audio playback failed:', e));
+            try {
+                const audio = new Audio("{{ url_for('static', filename='music/prank.mp3') }}");
+                audio.volume = 1.0;
+                audio.play().catch(e => {
+                    console.log('Dynamic audio failed, trying DOM audio:', e);
+                    const domAudio = document.getElementById('globalPrankAudio');
+                    if (domAudio) {
+                        domAudio.currentTime = 0;
+                        domAudio.play();
+                    }
+                });
+            } catch (err) {
+                console.error('Audio error:', err);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
