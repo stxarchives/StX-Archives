@@ -252,36 +252,46 @@
                 loadComments(expId);
             }
         }
-        
-        async function loadComments(expId) {
+               async function loadComments(expId) {
             const list = document.getElementById(`comments-list-${expId}`);
             list.innerHTML = '<div class="text-center text-xs text-gray-500 font-medium py-4">Loading comments...</div>';
             try {
                 const res = await fetch(`/api/experience/${expId}/comments`);
                 const data = await res.json();
                 if (data.comments && data.comments.length > 0) {
-                    // Build thread map: top-level comments + their replies
+                    // YouTube-style: 2-level threading
+                    // All replies group under the top-level parent (root_id)
+                    const commentMap = {};
+                    data.comments.forEach(c => { commentMap[c.id] = c; });
+
                     const topLevel = data.comments.filter(c => !c.parent_id);
-                    const replies = data.comments.filter(c => c.parent_id);
+                    // All non-top-level comments, grouped by their root ancestor
                     const replyMap = {};
-                    replies.forEach(r => {
-                        if (!replyMap[r.parent_id]) replyMap[r.parent_id] = [];
-                        replyMap[r.parent_id].push(r);
+                    data.comments.filter(c => c.parent_id).forEach(r => {
+                        // Walk up to find root
+                        let root = r;
+                        while (root.parent_id && commentMap[root.parent_id]) {
+                            root = commentMap[root.parent_id];
+                        }
+                        if (!replyMap[root.id]) replyMap[root.id] = [];
+                        replyMap[root.id].push(r);
                     });
 
                     function renderMentions(text) {
                         return text.replace(/@(\S+)/g, '<span class="text-airred font-bold">@$1</span>');
                     }
 
-                    function renderComment(c, isReply) {
-                        const replyBtn = `<button onclick="startReply(${expId}, ${c.id}, '${c.name.replace(/'/g, "\\'")}')" class="text-[10px] text-gray-400 hover:text-airred font-bold uppercase tracking-widest ml-2 transition-colors">↩ Reply</button>`;
+                    // rootId: the top-level comment's id replies should attach to
+                    function renderComment(c, isReply, rootId) {
+                        const targetParentId = isReply ? rootId : c.id;
+                        const replyBtn = `<button onclick="startReply(${expId}, ${targetParentId}, '${c.name.replace(/'/g, "\\'")}', ${c.id})" class="text-[10px] text-gray-400 hover:text-airred font-bold uppercase tracking-widest ml-2 transition-colors">↩ Reply</button>`;
                         const indent = isReply ? 'ml-6 border-l-2 border-airred/30 pl-3' : '';
                         return `
                             <div class="bg-gray-50 dark:bg-[#111] p-3 rounded-xl border border-gray-200 dark:border-gray-800 ${indent}">
                                 <div class="flex justify-between items-center mb-1">
                                     <div class="flex items-center gap-1">
                                         <span class="text-xs font-bold uppercase tracking-widest text-gray-900 dark:text-white">${c.name}</span>
-                                        ${!isReply ? replyBtn : ''}
+                                        ${replyBtn}
                                     </div>
                                     <span class="text-[10px] text-gray-500 font-medium">${new Date(c.created_at).toLocaleString()}</span>
                                 </div>
@@ -292,10 +302,10 @@
 
                     let html = '';
                     topLevel.forEach(c => {
-                        html += renderComment(c, false);
+                        html += renderComment(c, false, c.id);
                         if (replyMap[c.id]) {
                             replyMap[c.id].forEach(r => {
-                                html += renderComment(r, true);
+                                html += renderComment(r, true, c.id);
                             });
                         }
                     });
@@ -308,12 +318,12 @@
             }
         }
 
-        function startReply(expId, parentId, parentName) {
-            // Store parent id
+        function startReply(expId, parentId, parentName, commentId) {
+            // parentId = root-level comment id (for threading)
+            // parentName = the name of the person being replied to (for @mention)
             const parentInput = document.getElementById(`comment-parent-id-${expId}`);
             if (parentInput) parentInput.value = parentId;
 
-            // Update reply indicator
             const indicator = document.getElementById(`reply-indicator-${expId}`);
             if (indicator) {
                 indicator.classList.remove('hidden');
@@ -321,11 +331,12 @@
                 if (label) label.textContent = `Replying to @${parentName}`;
             }
 
-            // Pre-fill comment input
             const input = document.getElementById(`comment-input-${expId}`);
             if (input) {
                 input.value = `@${parentName} `;
                 input.focus();
+                // Scroll the comment form into view
+                input.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
 
