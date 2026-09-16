@@ -13,25 +13,41 @@
         </div>
 
         <div class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-800">
-            <div class="w-full h-96 bg-gray-200 dark:bg-gray-700 relative">
-                <img id="main-teacher-img" src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top transition-opacity duration-300">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pointer-events-none">
-                    <div class="p-8 w-full">
-                        <p class="text-airred font-bold uppercase tracking-wider text-sm mb-2">{{ teacher.subject }}</p>
-                        <h1 class="text-4xl font-extrabold text-white tracking-tight">{{ teacher.name }}</h1>
-                    </div>
+        <!-- Main media viewer: swaps between img and video based on selection -->
+        <div class="w-full h-96 bg-gray-200 dark:bg-gray-700 relative">
+            <img id="main-teacher-img" src="{{ teacher.image_url }}" alt="{{ teacher.name }}" class="w-full h-full object-cover object-top transition-opacity duration-300">
+            <video id="main-teacher-video" src="" controls class="w-full h-full object-contain hidden"></video>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end pointer-events-none" id="main-overlay">
+                <div class="p-8 w-full">
+                    <p class="text-airred font-bold uppercase tracking-wider text-sm mb-2">{{ teacher.subject }}</p>
+                    <h1 class="text-4xl font-extrabold text-white tracking-tight">{{ teacher.name }}</h1>
                 </div>
             </div>
-            
-            {% if teacher.gallery_urls and teacher.gallery_urls|length > 1 %}
-            <div class="flex gap-4 p-4 overflow-x-auto bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-gray-800 scrollbar-hide">
-                {% for url in teacher.gallery_urls %}
-                <button onclick="document.getElementById('main-teacher-img').src='{{ url }}'; this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('ring-2', 'ring-airred', 'ring-offset-2', 'dark:ring-offset-[#151515]')); this.classList.add('ring-2', 'ring-airred', 'ring-offset-2', 'dark:ring-offset-[#151515]')" class="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden focus:outline-none transition-all {% if loop.first %}ring-2 ring-airred ring-offset-2 dark:ring-offset-[#151515]{% else %}opacity-70 hover:opacity-100{% endif %}">
-                    <img src="{{ url }}" class="w-full h-full object-cover object-top pointer-events-none">
-                </button>
-                {% endfor %}
-            </div>
-            {% endif %}
+        </div>
+
+        {% if teacher.gallery_urls and teacher.gallery_urls|length > 0 %}
+        <div class="flex gap-3 p-4 overflow-x-auto bg-gray-50 dark:bg-[#151515] border-b border-gray-100 dark:border-gray-800 scrollbar-hide">
+            {% for url in teacher.gallery_urls %}
+            {% set is_video = url.endswith('.mp4') or url.endswith('.mov') or url.endswith('.webm') %}
+            <button onclick="switchMedia('{{ url }}', {{ 'true' if is_video else 'false' }}); this.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('ring-2','ring-airred','ring-offset-2','dark:ring-offset-[#151515]')); this.classList.add('ring-2','ring-airred','ring-offset-2','dark:ring-offset-[#151515]')"
+                class="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden focus:outline-none transition-all relative {% if loop.first %}ring-2 ring-airred ring-offset-2 dark:ring-offset-[#151515]{% else %}opacity-70 hover:opacity-100{% endif %}">
+                {% if is_video %}
+                <!-- Video thumbnail: show a play icon overlay -->
+                <div class="w-full h-full bg-gray-900 flex items-center justify-center">
+                    <video src="{{ url }}" class="w-full h-full object-cover pointer-events-none" preload="metadata" muted></video>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="bg-black/60 rounded-full w-8 h-8 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <img src="{{ url }}" class="w-full h-full object-cover object-top pointer-events-none">
+                {% endif %}
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
             
             <div class="p-8 md:p-12 text-gray-800 dark:text-gray-200 leading-relaxed text-base prose dark:prose-invert max-w-none">
                 {{ teacher.description | safe }}
@@ -72,6 +88,28 @@
 </div>
 
 <script>
+    function switchMedia(url, isVideo) {
+        const img = document.getElementById('main-teacher-img');
+        const video = document.getElementById('main-teacher-video');
+        const overlay = document.getElementById('main-overlay');
+
+        if (isVideo) {
+            img.classList.add('hidden');
+            video.classList.remove('hidden');
+            video.src = url;
+            video.load();
+            // Hide the text overlay while video plays
+            if (overlay) overlay.classList.add('hidden');
+        } else {
+            video.classList.add('hidden');
+            video.pause();
+            video.src = '';
+            img.classList.remove('hidden');
+            img.src = url;
+            if (overlay) overlay.classList.remove('hidden');
+        }
+    }
+
     function reactToTeacher(teacherId, emoji) {
         fetch(`/api/teacher/${teacherId}/react`, {
             method: 'POST',
