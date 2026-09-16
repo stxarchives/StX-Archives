@@ -512,42 +512,75 @@
     </script>
 
     <!-- Custom Right Click Context Menu -->
-    <div id="custom-context-menu" class="fixed bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xl overflow-hidden hidden z-[100] w-64 text-sm font-medium transition-opacity duration-100 opacity-0" style="left: 0px; top: 0px;">
-        <div class="py-2 flex flex-col">
+    <div id="custom-context-menu" class="fixed bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] overflow-visible hidden z-[100] w-64 text-[13px] font-medium transition-opacity duration-150 opacity-0" style="left: 0px; top: 0px;">
+        <div class="p-1.5 flex flex-col gap-0.5">
             <!-- Primary Options -->
-            <a href="/" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                Home
+            <a href="/" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between text-gray-700 dark:text-gray-300 transition-colors group cursor-default">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <span>Home</span>
+                </div>
+                <span class="text-[11px] text-gray-400 font-mono tracking-widest">⌘H</span>
             </a>
-            <a href="/teachers" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                Teachers Directory
+            
+            <a href="/teachers" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between text-gray-700 dark:text-gray-300 transition-colors group cursor-default">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Teachers Directory</span>
+                </div>
+                <span class="text-[11px] text-gray-400 font-mono tracking-widest">⌘T</span>
             </a>
-            <a href="/hall-of-shame" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-gray-700 dark:text-gray-300 transition-colors">
-                Hall of Shame
+            
+            <a href="/hall-of-shame" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between text-gray-700 dark:text-gray-300 transition-colors group cursor-default">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>Hall of Shame</span>
+                </div>
             </a>
-            <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
-            <button onclick="document.getElementById('theme-toggle').click(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
-                Toggle Dark Mode
-            </button>
-            <button onclick="copyToClipboard(window.location.href); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-gray-700 dark:text-gray-300 transition-colors">
-                Copy Page Link
+            
+            <div class="border-t border-gray-100 dark:border-gray-800 my-1 mx-2"></div>
+            
+            <button onclick="document.getElementById('theme-toggle').click(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between w-full text-gray-700 dark:text-gray-300 transition-colors group cursor-default">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    <span>Toggle Theme</span>
+                </div>
+                <span class="text-[11px] text-gray-400 font-mono tracking-widest">⌘D</span>
             </button>
             
-            <div class="border-t border-gray-100 dark:border-gray-800 my-1"></div>
-            
-            <!-- Show More Button -->
-            <button onclick="document.getElementById('context-more-options').classList.toggle('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between text-left w-full text-gray-500 dark:text-gray-400 transition-colors">
-                <span>Show more options</span>
-                <span class="text-xs">▼</span>
+            <button onclick="copyToClipboard(window.location.href); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between w-full text-gray-700 dark:text-gray-300 transition-colors group cursor-default">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                    <span>Copy Page Link</span>
+                </div>
+                <span class="text-[11px] text-gray-400 font-mono tracking-widest">⌘C</span>
             </button>
-
-            <!-- Secondary Options (Hidden by default) -->
-            <div id="context-more-options" class="hidden flex flex-col bg-gray-50 dark:bg-[#111]">
-                <button onclick="playGlobalPrank(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-airred font-bold transition-colors">
-                    Login as Admin
-                </button>
-                <button onclick="alert('Connection to school mainframe established... Error 404: Brain not found.'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-3 text-left w-full text-green-600 font-bold transition-colors">
-                    Hack School Database
-                </button>
+            
+            <div class="border-t border-gray-100 dark:border-gray-800 my-1 mx-2"></div>
+            
+            <!-- Side-opening Submenu (Hover Trigger) -->
+            <div class="relative group/submenu">
+                <div class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center justify-between w-full text-gray-700 dark:text-gray-300 transition-colors cursor-default">
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                        <span>More Options</span>
+                    </div>
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                
+                <!-- Submenu Dropdown (Absolute Positioned Right) -->
+                <div class="absolute left-[98%] bottom-0 w-64 bg-white/95 dark:bg-[#1a1a1a]/95 backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] opacity-0 invisible group-hover/submenu:opacity-100 group-hover/submenu:visible transition-all duration-150 transform translate-x-[-10px] group-hover/submenu:translate-x-0">
+                    <div class="p-1.5 flex flex-col gap-0.5">
+                        <button onclick="playGlobalPrank(); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-2.5 text-left w-full text-airred font-medium transition-colors cursor-default">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                            <span>Login as Admin</span>
+                        </button>
+                        <button onclick="alert('Connection to school mainframe established... Error 404: Brain not found.'); document.getElementById('custom-context-menu').classList.add('hidden');" class="px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#2a2a2a] flex items-center gap-2.5 text-left w-full text-green-600 font-medium transition-colors cursor-default">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                            <span>Hack School Database</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
