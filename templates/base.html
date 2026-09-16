@@ -554,6 +554,22 @@
     <audio id="globalPrankAudio" src="{{ url_for('static', filename='music/prank.mp3') }}" preload="auto"></audio>
 
     <script>
+        function showSimpleToast(message) {
+            const toast = document.createElement('div');
+            toast.innerText = message;
+            toast.className = 'fixed bottom-12 left-1/2 transform -translate-x-1/2 bg-[#333] text-white px-4 py-2 rounded-full text-sm z-[9999] transition-opacity duration-300 opacity-0 pointer-events-none shadow-xl border border-[#444]';
+            document.body.appendChild(toast);
+            
+            // Trigger reflow
+            void toast.offsetWidth;
+            toast.classList.remove('opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
         function copyToClipboard(text) {
             function fallbackCopy(val) {
                 try {
@@ -567,18 +583,16 @@
                     textArea.select();
                     document.execCommand('copy');
                     textArea.remove();
-                    try { showToast('success', 'Link copied to clipboard!'); } catch(e) { alert('Link copied to clipboard!'); }
+                    showSimpleToast('Link copied to clipboard');
                 } catch (err) {
-                    try { showToast('error', 'Failed to copy link'); } catch(e) { alert('Failed to copy link'); }
+                    showSimpleToast('Failed to copy link');
                 }
             }
 
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text)
-                        .then(() => {
-                            try { showToast('success', 'Link copied to clipboard!'); } catch(e) { alert('Link copied to clipboard!'); }
-                        })
+                        .then(() => showSimpleToast('Link copied to clipboard'))
                         .catch(() => fallbackCopy(text));
                 } else {
                     fallbackCopy(text);
