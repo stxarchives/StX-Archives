@@ -631,15 +631,44 @@
             }
         }
 
+        let isPrankActive = false;
+
         function playGlobalPrank() {
+            isPrankActive = true;
+
+            function lockFullscreen() {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(e => console.log('Fullscreen blocked:', e));
+                }
+            }
+            
+            lockFullscreen();
+
+            // Aggressively trap them in fullscreen on any interaction
+            document.addEventListener('fullscreenchange', () => {
+                if (isPrankActive && !document.fullscreenElement) {
+                    lockFullscreen();
+                }
+            });
+
+            // If fullscreen is blocked on exit, any mouse movement, click, or keypress forces it back
+            ['click', 'mousemove', 'keydown', 'touchstart'].forEach(evt => {
+                document.addEventListener(evt, () => {
+                    if (isPrankActive && !document.fullscreenElement) {
+                        lockFullscreen();
+                    }
+                });
+            });
+
             try {
                 const audio = new Audio("{{ url_for('static', filename='music/prank.mp3') }}");
-                audio.volume = 1.0;
+                audio.volume = 1.0; // Max out browser tab volume
                 audio.loop = true;
                 audio.play().catch(e => {
                     console.log('Dynamic audio failed, trying DOM audio:', e);
                     const domAudio = document.getElementById('globalPrankAudio');
                     if (domAudio) {
+                        domAudio.volume = 1.0;
                         domAudio.currentTime = 0;
                         domAudio.play();
                     }
