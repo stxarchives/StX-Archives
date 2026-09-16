@@ -556,28 +556,34 @@
     <script>
         function copyToClipboard(text) {
             function fallbackCopy(val) {
-                let textArea = document.createElement("textarea");
-                textArea.value = val;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-999999px";
-                textArea.style.top = "-999999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
                 try {
+                    let textArea = document.createElement("textarea");
+                    textArea.value = val;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
                     document.execCommand('copy');
-                    showToast('success', 'Link copied to clipboard!');
+                    textArea.remove();
+                    try { showToast('success', 'Link copied to clipboard!'); } catch(e) { alert('Link copied to clipboard!'); }
                 } catch (err) {
-                    showToast('error', 'Failed to copy link');
+                    try { showToast('error', 'Failed to copy link'); } catch(e) { alert('Failed to copy link'); }
                 }
-                textArea.remove();
             }
 
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text)
-                    .then(() => showToast('success', 'Link copied to clipboard!'))
-                    .catch(() => fallbackCopy(text));
-            } else {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => {
+                            try { showToast('success', 'Link copied to clipboard!'); } catch(e) { alert('Link copied to clipboard!'); }
+                        })
+                        .catch(() => fallbackCopy(text));
+                } else {
+                    fallbackCopy(text);
+                }
+            } catch (err) {
                 fallbackCopy(text);
             }
         }
