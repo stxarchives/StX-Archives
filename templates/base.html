@@ -555,11 +555,9 @@
 
     <script>
         function copyToClipboard(text) {
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(text).then(() => showToast('success', 'Link copied!'));
-            } else {
+            function fallbackCopy(val) {
                 let textArea = document.createElement("textarea");
-                textArea.value = text;
+                textArea.value = val;
                 textArea.style.position = "fixed";
                 textArea.style.left = "-999999px";
                 textArea.style.top = "-999999px";
@@ -568,11 +566,19 @@
                 textArea.select();
                 try {
                     document.execCommand('copy');
-                    showToast('success', 'Link copied!');
+                    showToast('success', 'Link copied to clipboard!');
                 } catch (err) {
                     showToast('error', 'Failed to copy link');
                 }
                 textArea.remove();
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('success', 'Link copied to clipboard!'))
+                    .catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
             }
         }
 
