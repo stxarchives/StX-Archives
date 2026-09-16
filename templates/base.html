@@ -643,16 +643,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const menu = document.getElementById('custom-context-menu');
-            const moreOptions = document.getElementById('context-more-options');
 
             document.addEventListener('contextmenu', (e) => {
                 // Allow default context menu on inputs so users can paste/copy text
                 if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
                 
                 e.preventDefault();
-                
-                // Hide more options by default when opening
-                moreOptions.classList.add('hidden');
                 
                 menu.classList.remove('hidden');
                 menu.classList.remove('opacity-0');
